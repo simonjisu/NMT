@@ -2,11 +2,12 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-
+USE_CUDA = torch.cuda.is_available()
+DEVICE = torch.cuda.current_device()
 
 class Attention(nn.Module):
     def __init__(self, hidden_size, hidden_size2=None, method='general'):
-        super(Attn, self).__init__()
+        super(Attention, self).__init__()
         """
         hidden_size: set hidden size same as decoder hidden size which is n_d (= 2*n_e)
         hidden_size2: only for concat method, if none then is same as hidden_size (n_d)
