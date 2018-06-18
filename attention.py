@@ -10,7 +10,7 @@ class Attention(nn.Module):
         super(Attention, self).__init__()
         """
         hidden_size: set hidden size same as decoder hidden size which is n_d (= 2*n_e)
-        hidden_size2: only for concat method, if none then is same as hidden_size (n_d)
+        hidden_size2: only for concat&paper method, if none then is same as hidden_size (n_d)
         (in paper notation is n', https://arxiv.org/abs/1409.0473)
         methods:
         - 'dot': dot product between hidden and encoder_outputs
@@ -58,7 +58,7 @@ class Attention(nn.Module):
         # score: (B, 1, T_x)
         s = self.score(H, O) 
         
-        # encoding masking
+        # encoding masking: ensure not to calculate paddings
         if encoder_lengths is not None:
             mask = s.data.new(B, T_H, T_O) # (B, 1, T_x)
             mask = self.fill_context_mask(mask, sizes=encoder_lengths, v_mask=float('-inf'), v_unmask=0)
@@ -68,7 +68,7 @@ class Attention(nn.Module):
         w = F.softmax(s, 2) 
         
         # attention: weight * encoder_hiddens, (B, 1, T_x) * (B, T_x, n_d) = (B, 1, n_d)
-        z = w.bmm(c)
+        z = w.bmm(O)
         if return_weight:
             return z, w
         return z
@@ -97,7 +97,7 @@ class Attention(nn.Module):
             # attn: (B, T_x, 2*n_d) > (B, T_x, n_d)
             # v repeat: (1, n_d) > (B, 1, n_d)
             # bmm: (B, 1, n_d) * (B, n_d, T_x) = (B, 1, T_x)
-            cat = torch.cat((H.repeat(1, O.size(1), 1), O), 2)
+            cat = torch.cat([H.repeat(1, O.size(1), 1), O], 2)
             e = self.attn(cat)
             v = self.v.repeat(O.size(0), 1).unsqueeze(1)
             e = v.bmm(e.transpose(1, 2))
@@ -105,7 +105,7 @@ class Attention(nn.Module):
         
         elif self.method == 'paper':
             # add tanh after attention linear layer in 'concat' method
-            cat = torch.cat((H.repeat(1, O.size(1), 1), O), 2)
+            cat = torch.cat([H.repeat(1, O.size(1), 1), O], 2)
             e = F.tanh(self.attn(cat))
             v = self.v.repeat(O.size(0), 1).unsqueeze(1)
             e = v.bmm(e.transpose(1, 2))

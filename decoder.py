@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-from Attention import Attention
+from attention import Attention
 USE_CUDA = torch.cuda.is_available()
 DEVICE = torch.cuda.current_device()
 
