@@ -118,7 +118,7 @@ def train_test_split(data, train=0.8, valid=None, test=0.1):
 def main():
     pairs = read_files(READ_PATH)
     if '-min_w' in sys.argv and '-max_w' in sys.argv:
-        pairs = filter_pairs(pairs, MIN_WORDS, MAX_WORDS)
+        pairs = filter_pairs(pairs, MIN_WORD, MAX_WORD)
     
     if '-r' in sys.argv:
         random.shuffle(pairs)

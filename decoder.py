@@ -8,7 +8,7 @@ DEVICE = torch.cuda.current_device()
 
 class Decoder(nn.Module):
     def __init__(self, V_d, m_d, n_d, sos_idx, num_layers=1, hidden_size2=None, method='general', 
-                 return_weight=True):
+                 return_weight=True, max_len=15):
         super(Decoder, self).__init__()
         """
         vocab_size: V_d
@@ -37,6 +37,7 @@ class Decoder(nn.Module):
         self.gru = nn.GRU(m_d+n_d, n_d, num_layers, batch_first=True, bidirectional=False) 
         # linear
         self.linear = nn.Linear(2*n_d, V_d)
+        self.max_len = max_len
         
         
     def start_token(self, batch_size):
@@ -44,7 +45,7 @@ class Decoder(nn.Module):
         if USE_CUDA: sos = sos.cuda()
         return sos
     
-    def forward(self, hidden, enc_outputs, enc_outputs_lengths, max_len):
+    def forward(self, hidden, enc_outputs, enc_outputs_lengths=None, max_len=None):
         """
         input:
         - hidden(previous hidden): B, 1, n_d 
@@ -52,8 +53,7 @@ class Decoder(nn.Module):
         - enc_outputs_lengths: list type
         - max_len(targer sentences max len in batch): T_y
         """
-        assert isinstance(enc_outputs_lengths, list), \
-            'encoder_outputs_lengths must be a list type, current is {}'.format(type(enc_outputs_lengths))
+        if max_len is None: max_len = self.max_len
         
         inputs = self.start_token(hidden.size(0)) # (B, 1)
         embeded = self.embed(inputs) # (B, 1, m_d)
@@ -65,8 +65,8 @@ class Decoder(nn.Module):
             # context vector: previous hidden(s{i-1}), encoder_outputs(O_e) > context(c{i}), weights
             # - context: (B, 1, n_d)
             # - weights: (B, 1, T_x)
-            context, weights = self.attention(hidden, enc_outputs, \
-                                              enc_outputs_lengths, return_weight=self.return_weight)
+            context, weights = self.attention(hidden, enc_outputs, enc_outputs_lengths, 
+                                              return_weight=self.return_weight)
             attn_weights.append(weights.squeeze(1))
             
             # concat context & embedding vectors: (B, 1, m_d+n_d)

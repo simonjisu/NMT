@@ -14,12 +14,13 @@ from attention import Attention
 import numpy as np
 USE_CUDA = torch.cuda.is_available()
 DEVICE = torch.cuda.current_device()
-
+print('cuda states: {}'.format(USE_CUDA))
 # data loader settings
 train_file = 'eng-fra-filtered.train'
 valid_file = 'eng-fra-filtered.valid'
 test_file = 'eng-fra-filtered.test'
-BATCH_SIZE = 64
+
+BATCH_SIZE = 128
 
 SOURCE = Field(tokenize=str.split, use_vocab=True, init_token="<s>", eos_token="</s>", lower=True, 
                include_lengths=True, batch_first=True)
@@ -42,8 +43,8 @@ test_loader = BucketIterator(test_data, batch_size=BATCH_SIZE, device=DEVICE,
 # parameters
 V_so = len(SOURCE.vocab)
 V_ta = len(TARGET.vocab)
-HIDDEN = 1000
-EMBED = 500
+HIDDEN = 800
+EMBED = 300
 STEP = 200
 LR = 0.001
 NUM_LAYERS = 1
@@ -65,6 +66,7 @@ scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[100], optimize
 enc.train()
 dec.train()
 for step in range(STEP):
+    print(step)
     losses=[]
     scheduler.step()
     if EARLY_STOPPING:
@@ -115,3 +117,4 @@ for step in range(STEP):
 # save model
 torch.save(enc.state_dict(), './data/model/fra_eng.enc')
 torch.save(dec.state_dict(), './data/model/fra_eng.dec')
+print('done!')
