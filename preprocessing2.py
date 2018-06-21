@@ -13,7 +13,8 @@ if '-h' in sys.argv:
             '-test': 'test sample rate, default is 0.2',
             '-valid': 'validation sample rate, default is None',
             '-min_w' : 'filter minimum words of a sentence, default is 3',
-            '-max_w' : 'filter maximum words of a sentence, default is 25',}
+            '-max_w' : 'filter maximum words of a sentence, default is 25',
+            '-n' : 'filter n paris of sentences'}
     
     print('=' * 30)
     for k, v in temp.items():
@@ -63,6 +64,12 @@ if '-max_w' in sys.argv:
 else:
     MAX_WORD = 25
 
+if '-n' in sys.argv:
+    idx = sys.argv.index('-n') + 1
+    N_PARIS = int(sys.argv[idx])
+else:
+    N_PARIS = 50000
+
 # Turn a Unicode string to plain ASCII, thanks to http://stackoverflow.com/a/518232/2809427
 def unicode_to_ascii(s):
     return ''.join( c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn' )
@@ -91,8 +98,7 @@ def write_file(data, path):
 def filter_pairs(pairs, min_words, max_words):
     filtered_pairs = []
     for s, t in pairs:
-        if len(s) >= min_words and len(s) <= max_words and \
-            len(t) >= min_words and len(t) <= max_words:
+        if (len(s) >= min_words and len(s) <= max_words) and (len(t) >= min_words and len(t) <= max_words):
             filtered_pairs.append([s, t])
     return filtered_pairs
 
@@ -123,6 +129,9 @@ def main():
     if '-r' in sys.argv:
         random.shuffle(pairs)
     
+    if '-n' in sys.argv:
+        paris = paris[:N_PAIRS]
+    
     if ('-train' in sys.argv and '-test' in sys.argv) or ('-train' in sys.argv and '-valid' in sys.argv and '-test' in sys.argv):
         datas = train_test_split(pairs, train=TRAIN, valid=VALID, test=TEST)
     
@@ -133,6 +142,7 @@ def main():
         
     for s, d in zip(str_list, datas):
         write_file(d, WRITE_PATH+s)
+        
     print('done!')
 if __name__ == "__main__":
     main()

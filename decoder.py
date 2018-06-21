@@ -7,8 +7,8 @@ USE_CUDA = torch.cuda.is_available()
 DEVICE = torch.cuda.current_device()
 
 class Decoder(nn.Module):
-    def __init__(self, V_d, m_d, n_d, sos_idx, num_layers=1, hidden_size2=None, method='general', 
-                 return_weight=True, max_len=15):
+    def __init__(self, V_d, m_d, n_d, sos_idx=2, num_layers=1, hidden_size2=None, 
+                 method='general', return_weight=True, max_len=15):
         super(Decoder, self).__init__()
         """
         vocab_size: V_d
@@ -93,3 +93,30 @@ class Decoder(nn.Module):
         # attn_weights = [(B, T_x), (B, T_x), (B, T_x)...] > (B*max_len, T_x)
         scores = torch.cat(scores, 1)
         return scores.view(inputs.size(0)*max_len, -1), torch.cat(attn_weights)
+    
+    def decode(self, hidden, enc_outputs, enc_outputs_lengths, eos_idx=3, max_len=50):
+        
+        inputs = self.start_token(hidden.size(0))  # (1, 1)
+        embeded = self.embed(inputs)  # (1, 1, V_d)
+        
+        decodes = []
+        attn_weights = []
+        decoded = torch.LongTensor([self.sos_idx]).view(1, -1)
+        
+        while (decoded.item() != eos_idx):
+            context, weights = self.attention(hidden, enc_outputs, enc_outputs_lengths, 
+                                              return_weight=self.return_weight)
+            attn_weights.append(weights.squeeze(1))
+            gru_input = torch.cat([embeded, context], 2)
+            _, hidden = self.gru(gru_input, hidden.transpose(0, 1))
+            hidden = hidden.transpose(0, 1)
+            concated = torch.cat([hidden, context], 2)
+            score = self.linear(concated.squeeze(1))
+            decoded = score.max(1)[1]
+            decodes.append(decoded)
+            embeded = self.embed(decoded).unsqueeze(1)
+            
+            if len(decodes) >= max_len:
+                break
+        
+        return torch.cat(decodes), torch.cat(attn_weights)
