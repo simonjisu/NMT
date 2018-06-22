@@ -8,7 +8,7 @@ DEVICE = torch.cuda.current_device()
 
 class Decoder(nn.Module):
     def __init__(self, V_d, m_d, n_d, sos_idx=2, num_layers=1, hidden_size2=None, 
-                 method='general', return_weight=True, max_len=15):
+                 method='general', return_weight=True, max_len=15, use_dropout=False):
         super(Decoder, self).__init__()
         """
         vocab_size: V_d
@@ -28,10 +28,14 @@ class Decoder(nn.Module):
         self.num_layers = num_layers
         self.return_weight = return_weight
         self.method = method
+        self.use_dropout = use_dropout
         # attention
         self.attention = Attention(hidden_size=n_d, hidden_size2=hidden_size2, method=method)
         # embed
         self.embed = nn.Embedding(V_d, m_d)
+        # dropout:
+        if self.use_dropout:
+            self.dropout = nn.Dropout(0.5)
         # gru(W*[embed, context] + U*[hidden_prev])
         # gru: m+n
         self.gru = nn.GRU(m_d+n_d, n_d, num_layers, batch_first=True, bidirectional=False) 
@@ -57,6 +61,9 @@ class Decoder(nn.Module):
         
         inputs = self.start_token(hidden.size(0)) # (B, 1)
         embeded = self.embed(inputs) # (B, 1, m_d)
+        if self.use_dropout:
+            embeded = self.dropout(embeded)
+            
         # prepare for whole targer sentence scores
         scores = []
         attn_weights = []
@@ -86,7 +93,9 @@ class Decoder(nn.Module):
             
             # greedy method
             decoded = score.max(1)[1]  # (B)
-            embeded = self.embed(decoded).unsqueeze(1) # next input y{i-1} (B, 1, m_d) 
+            embeded = self.embed(decoded).unsqueeze(1) # next input y{i-1} (B, 1, m_d)
+            if self.use_dropout:
+                embeded = self.dropout(embeded)
 
         # column-wise concat, reshape!! 
         # scores = [(B, V_d), (B, V_d), (B, V_d)...] > (B, V_d*max_len)
@@ -98,6 +107,8 @@ class Decoder(nn.Module):
         
         inputs = self.start_token(hidden.size(0))  # (1, 1)
         embeded = self.embed(inputs)  # (1, 1, V_d)
+        if self.use_dropout:
+            embeded = self.dropout(embeded)
         
         decodes = []
         attn_weights = []
@@ -115,6 +126,8 @@ class Decoder(nn.Module):
             decoded = score.max(1)[1]
             decodes.append(decoded)
             embeded = self.embed(decoded).unsqueeze(1)
+            if self.use_dropout:
+                embeded = self.dropout(embeded)
             
             if len(decodes) >= max_len:
                 break

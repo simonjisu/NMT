@@ -1,15 +1,12 @@
 import argparse
-from train import train
 
-if __name__ == "__main__":
+def get_parser():
     parser = argparse.ArgumentParser(description='NMT argument parser')
     parser.add_argument('-pth', '--PATH', help='location of path', type=str, default='./data/en_fa/')
     parser.add_argument('-trp', '--TRAIN_FILE', help='location of training path', type=str, default='eng-fra-small.train')
     parser.add_argument('-vap', '--VALID_FILE', help='location of valid path', type=str, default='eng-fra-small.valid')
     parser.add_argument('-tep', '--TEST_FILE', help='location of test path', type=str, default='eng-fra-small.test')
     parser.add_argument('-mth', '--METHOD', help='attention methods: dot, general, concat, paper', type=str, default='general')
-    parser.add_argument('-svpe', '--SAVE_ENC_PATH', help='saving encoder model path', type=str, default='./model/fra_eng.enc')
-    parser.add_argument('-svpd', '--SAVE_DEC_PATH', help='saving decoder model path', type=str, default='./model/fra_eng.dec')
     parser.add_argument('-bat', '--BATCH', help='batch size', type=int, default=64)
     parser.add_argument('-hid', '--HIDDEN', help='hidden size', type=int, default=600)
     parser.add_argument('-hid2', '--HIDDEN2', help='hidden size used for attention(not nessesary)', type=int, default=None)
@@ -25,8 +22,5 @@ if __name__ == "__main__":
     parser.add_argument('-elpat', '--EARLY_PATIENCE', help='earlystopping patience number', type=int, default=5)
     parser.add_argument('-elmin', '--MIN_DELTA', help='earlystopping minimum delta', type=float, default=0.0)
     
-
-    
-    config = parser.parse_args()
-    print(config)
-    train(config)
+    config = parser.parse_known_args()[0]
+    return config

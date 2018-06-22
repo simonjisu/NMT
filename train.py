@@ -44,24 +44,29 @@ def train(config):
     EARLY_STOPPING = False
 
     # build networks
-    enc = Encoder(V_so, config.EMBED, config.HIDDEN, config.NUM_HIDDEN, bidrec=True)
+    enc = Encoder(V_so, config.EMBED, config.HIDDEN, config.NUM_HIDDEN, bidrec=True, use_dropout=config.DROPOUT)
     dec = Decoder(V_ta, config.EMBED, 2*config.HIDDEN, hidden_size2=config.HIDDEN2, \
-                  sos_idx=SOURCE.vocab.stoi['<s>'], method=config.METHOD)
+                  sos_idx=SOURCE.vocab.stoi['<s>'], method=config.METHOD, use_dropout=config.DROPOUT)
     if USE_CUDA:
         enc = enc.cuda()
         dec = dec.cuda()
 
     loss_function = nn.CrossEntropyLoss(ignore_index=TARGET.vocab.stoi['<pad>'])
-    optimizer = optim.Adam(list(enc.parameters()) + list(dec.parameters()), lr=config.LR)
-    scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[100], optimizer=optimizer)
+    enc_optimizer = optim.Adam(enc.parameters(), lr=config.LR, weight_decay=config.LAMBDA)
+    dec_optimizer = optim.Adam(dec.parameters(), lr=config.LR * config.DECLR, weight_decay=config.LAMBDA)
+    enc_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[config.STEP/2], optimizer=enc_optimizer)
+    dec_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[config.STEP/2], optimizer=dec_optimizer)
 
     # train
+    wait = 0
     enc.train()
     dec.train()
     for step in range(config.STEP):
         losses=[]
-        scheduler.step()
-        if EARLY_STOPPING:
+        valid_loss_list = [1e10] if config.EARLY else None
+        enc_scheduler.step()
+        dec_scheduler.step()
+        if config.EARLY and EARLY_STOPPING:
             break
         for i, batch in enumerate(train_loader):
             inputs, lengths = batch.so
@@ -77,19 +82,30 @@ def train(config):
             losses.append(loss.item())
 
             loss.backward()
-            optimizer.step()
+            torch.nn.utils.clip_grad_norm_(enc.parameters(), 50.0) # gradient clipping
+            torch.nn.utils.clip_grad_norm_(dec.parameters(), 50.0) # gradient clipping
+            enc_optimizer.step()
+            dec_optimizer.step()
 
-        if step % 10 == 0:
+        if step % config.EVAL_EVERY == 0:
             valid_losses = evaluation(enc, dec, loss_function, valid_loader)
-            msg = '[{}/{}] train_loss: {:.4f}, valid_loss: {:.4f}, lr: {}'.format(\
-              step+1, config.STEP, np.mean(losses), np.mean(valid_losses), round(scheduler.get_lr()[0], 6))
+            
+            msg = '[{}/{}] train_loss: {:.4f}, valid_loss: {:.4f}'.format(\
+              step+1, config.STEP, np.mean(losses), np.mean(valid_losses))
             print(msg)
+            
+            if config.EARLY:
+                valid_loss_list.append(np.mean(valid_losses))
+                diff = valid_loss_list[-2] - valid_loss_list[-1]
+                if diff < -config.MIN_DELTA:
+                    if wait > config.EARLY_PATIENCE:
+                        EARLY_STOPPING = True
+                        print("Early Stopping!")
+                        print(valid_loss_list[1:])
+                        break
+                    else:
+                        wait += 1
 
-            if np.mean(valid_losses) < 0.1:
-                EARLY_STOPPING = True
-                print("Early Stopping!")
-                break
-            valid_losses = []
             losses = []
             enc.train()
             dec.train()
@@ -97,10 +113,6 @@ def train(config):
     # save model
     torch.save(enc.state_dict(), config.SAVE_ENC_PATH)
     torch.save(dec.state_dict(), config.SAVE_DEC_PATH)
-    # test loss
-    test_losses = evaluation(enc, dec, loss_function, test_loader)
-    print('test_loss: {:.4f}'.format(test_losses))
-    print('done!')
     
 def evaluation(enc, dec, loss_function, loader):
     enc.eval()
