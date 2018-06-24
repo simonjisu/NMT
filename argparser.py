@@ -1,11 +1,11 @@
 import argparse
 
-def get_parser():
+def get_parser(lang1, lang2):
     parser = argparse.ArgumentParser(description='NMT argument parser')
     parser.add_argument('-pth', '--PATH', help='location of path', type=str, default='./data/en_fa/')
-    parser.add_argument('-trp', '--TRAIN_FILE', help='location of training path', type=str, default='eng-fra-small.train')
-    parser.add_argument('-vap', '--VALID_FILE', help='location of valid path', type=str, default='eng-fra-small.valid')
-    parser.add_argument('-tep', '--TEST_FILE', help='location of test path', type=str, default='eng-fra-small.test')
+    parser.add_argument('-trp', '--TRAIN_FILE', help='location of training path', type=str, default='{}-{}-small.train'.format(lang1, lang2))
+    parser.add_argument('-vap', '--VALID_FILE', help='location of valid path', type=str, default='{}-{}-small.valid'.format(lang1, lang2))
+    parser.add_argument('-tep', '--TEST_FILE', help='location of test path', type=str, default='{}-{}-small.test'.format(lang1, lang2))
     parser.add_argument('-mth', '--METHOD', help='attention methods: dot, general, concat, paper', type=str, default='general')
     parser.add_argument('-bat', '--BATCH', help='batch size', type=int, default=64)
     parser.add_argument('-hid', '--HIDDEN', help='hidden size', type=int, default=600)

@@ -28,7 +28,7 @@ class Attention(nn.Module):
             # linear input: (B, *, in_f)
             # linear output: (B, *, out_f)
 
-        elif self.method == 'concat':
+        elif self.method == 'concat' or self.method == 'paper':
             self.attn = nn.Linear(self.hidden_size*2, self.hidden_size2)
             self.v = nn.Parameter(torch.FloatTensor(1, self.hidden_size2))
         

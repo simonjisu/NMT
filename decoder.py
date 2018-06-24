@@ -106,26 +106,28 @@ class Decoder(nn.Module):
     def decode(self, hidden, enc_outputs, enc_outputs_lengths, eos_idx=3, max_len=50):
         
         inputs = self.start_token(hidden.size(0))  # (1, 1)
-        embeded = self.embed(inputs)  # (1, 1, V_d)
+        embeded = self.embed(inputs)  # (1, 1, m_d)
         if self.use_dropout:
             embeded = self.dropout(embeded)
         
-        decodes = []
+        decodes = [] 
         attn_weights = []
         decoded = torch.LongTensor([self.sos_idx]).view(1, -1)
         
         while (decoded.item() != eos_idx):
+            # context: (1, 1, n_d)
+            # weights: (1, 1, T_x)
             context, weights = self.attention(hidden, enc_outputs, enc_outputs_lengths, 
                                               return_weight=self.return_weight)
-            attn_weights.append(weights.squeeze(1))
-            gru_input = torch.cat([embeded, context], 2)
-            _, hidden = self.gru(gru_input, hidden.transpose(0, 1))
+            attn_weights.append(weights.squeeze(1))  # (1, T_x)
+            gru_input = torch.cat([embeded, context], 2)  # (1, 1, m_d+n_d)
+            _, hidden = self.gru(gru_input, hidden.transpose(0, 1))  # (1, 1, n_d)
             hidden = hidden.transpose(0, 1)
-            concated = torch.cat([hidden, context], 2)
-            score = self.linear(concated.squeeze(1))
-            decoded = score.max(1)[1]
+            concated = torch.cat([hidden, context], 2)  # (1, 1, 2*n_d)
+            score = self.linear(concated.squeeze(1))  # (1, 2*n_d) -> # (1, V_d)
+            decoded = score.max(1)[1]  # (1)
             decodes.append(decoded)
-            embeded = self.embed(decoded).unsqueeze(1)
+            embeded = self.embed(decoded).unsqueeze(1) # (1, 1, m_d)
             if self.use_dropout:
                 embeded = self.dropout(embeded)
             

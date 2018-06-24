@@ -54,8 +54,8 @@ def train(config):
     loss_function = nn.CrossEntropyLoss(ignore_index=TARGET.vocab.stoi['<pad>'])
     enc_optimizer = optim.Adam(enc.parameters(), lr=config.LR, weight_decay=config.LAMBDA)
     dec_optimizer = optim.Adam(dec.parameters(), lr=config.LR * config.DECLR, weight_decay=config.LAMBDA)
-    enc_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[config.STEP/2], optimizer=enc_optimizer)
-    dec_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[config.STEP/2], optimizer=dec_optimizer)
+    enc_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[config.STEP/2, int(3*config.STEP/4)], optimizer=enc_optimizer)
+    dec_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[config.STEP/2, int(3*config.STEP/4)], optimizer=dec_optimizer)
 
     # train
     wait = 0

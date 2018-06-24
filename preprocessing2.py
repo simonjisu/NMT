@@ -6,14 +6,14 @@ import unicodedata
 
 if '-h' in sys.argv:
     temp = {'-h': 'help', 
-            '-r': 'random shuffle data',
+            '-r': 'reverse',
             '-wf': 'set filepath, default is "./data/translate"',
             '-rf': 'set filepath, default is "./data/en_fa/eng-fra.txt"',
             '-train': 'train sample rate, default is 0.8',
             '-test': 'test sample rate, default is 0.2',
             '-valid': 'validation sample rate, default is None',
-            '-min_w' : 'filter minimum words of a sentence, default is 3',
-            '-max_w' : 'filter maximum words of a sentence, default is 25',
+            '-min_w' : 'filter minimum words of a sentence, default is 3, have to insert if you want to filter',
+            '-max_w' : 'filter maximum words of a sentence, default is 25, have to insert if you want to filter',
             '-n' : 'filter n paris of sentences'}
     
     print('=' * 30)
@@ -66,9 +66,9 @@ else:
 
 if '-n' in sys.argv:
     idx = sys.argv.index('-n') + 1
-    N_PARIS = int(sys.argv[idx])
+    N_PAIRS = int(sys.argv[idx])
 else:
-    N_PARIS = 50000
+    N_PAIRS = 50000
 
 # Turn a Unicode string to plain ASCII, thanks to http://stackoverflow.com/a/518232/2809427
 def unicode_to_ascii(s):
@@ -127,10 +127,10 @@ def main():
         pairs = filter_pairs(pairs, MIN_WORD, MAX_WORD)
     
     if '-r' in sys.argv:
-        random.shuffle(pairs)
+        pairs = [[t, s] for s, t in pairs]
     
     if '-n' in sys.argv:
-        paris = paris[:N_PAIRS]
+        pairs = pairs[:N_PAIRS]
     
     if ('-train' in sys.argv and '-test' in sys.argv) or ('-train' in sys.argv and '-valid' in sys.argv and '-test' in sys.argv):
         datas = train_test_split(pairs, train=TRAIN, valid=VALID, test=TEST)
