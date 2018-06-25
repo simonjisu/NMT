@@ -16,7 +16,7 @@ After download data from data **source2**, run `preprocessing2.py`
 
 > `-h` : 'help', 
 >
-> `-r` : 'random shuffle data',
+> `-r` : 'reverse',
 >
 > `-wf` : 'set filepath, default is "./data/translate"',
 >

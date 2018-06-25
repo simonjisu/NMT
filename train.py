@@ -54,16 +54,16 @@ def train(config):
     loss_function = nn.CrossEntropyLoss(ignore_index=TARGET.vocab.stoi['<pad>'])
     enc_optimizer = optim.Adam(enc.parameters(), lr=config.LR, weight_decay=config.LAMBDA)
     dec_optimizer = optim.Adam(dec.parameters(), lr=config.LR * config.DECLR, weight_decay=config.LAMBDA)
-    enc_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[config.STEP/2, int(3*config.STEP/4)], optimizer=enc_optimizer)
-    dec_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[config.STEP/2, int(3*config.STEP/4)], optimizer=dec_optimizer)
+    enc_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[int(config.STEP/4), int(config.STEP/2), int(3*config.STEP/4)], optimizer=enc_optimizer)
+    dec_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[int(config.STEP/4), int(config.STEP/2), int(3*config.STEP/4)], optimizer=dec_optimizer)
 
     # train
     wait = 0
+    valid_loss_list = [1e10] if config.EARLY else None
     enc.train()
     dec.train()
     for step in range(config.STEP):
         losses=[]
-        valid_loss_list = [1e10] if config.EARLY else None
         enc_scheduler.step()
         dec_scheduler.step()
         if config.EARLY and EARLY_STOPPING:
