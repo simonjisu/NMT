@@ -2,11 +2,18 @@
 
 1. Paper Implementation: [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473) - Dzmitry Bahdanau, Kyunghyun Cho, Yoshua Bengio (v7 2016)
 
-**references**
+**References**
+
+* arichitecture picture: https://arxiv.org/pdf/1703.03906.pdf
 * tutorial: https://github.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation-batched.ipynb
-* tutorial2: https://github.com/DSKSD/DeepNLP-models-Pytorch/blob/master/notebooks/07.Neural-Machine-Translation-with-Attention.ipynb
 * data source: http://www.statmt.org/wmt14/translation-task.html
 * data source2: http://www.manythings.org/anki/
+
+**Todo:**
+
+* BLEU score
+* Layer Normalizaiton: https://discuss.pytorch.org/t/speed-up-for-layer-norm-lstm/5861
+* seq2seq beam search: https://guillaumegenthial.github.io/sequence-to-sequence.html
 
 ## Demo
 
@@ -80,5 +87,25 @@ For 'HELP' please insert argument behind `main.py -h`
 >
 > `-elmin` (MIN_DELTA) : earlystopping minimum delta, type=float, default=0.0
 
-## 
+## Trainlog
 
+Train logs are in `trainlog` directory.
+
+Following are hyperparameter to train, `loss` is validation loss, `(el)` beside the `loss` is the early stopped step.
+
+|trainID|loss(el)|bat|dropr|emd|hid|nhl|wdk|stp|ee|el|mth|lrdk|
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|1|3.6691|64|0.0|300|600|3|0|30|1|F|"general"|STEP\*(1/2)|
+|2|3.1080|64|0.5|300|600|3|0|30|1|F|"general"|STEP\*(1/2)|
+|3|2.3471|64|0.0|300|600|3|0.0001|30|1|F|"general"|STEP\*(1/2)|
+|4|2.2082|64|0.5|300|600|3|0.0001|30|1|F|"general"|STEP\*(1/2)|
+|5|2.2157|64|0.5|300|600|3|0.0001|30|1|F|"general"|STEP\*(1/2, 3/4)|
+|6|2.1632|64|0.5|300|600|3|0.0001|50|1|F|"general"|STEP\*(1/2, 3/4)|
+|7|2.0926(24)|64|0.5|300|600|3|0.0001|40|1|T|"general"|STEP\*(1/4, 1/2, 3/4)|
+|8|2.1934(22)|64|0.1|256|512|4|0.0001|40|1|T|"general"|STEP\*(1/4, 1/2, 3/4)|
+|9|2.3073(22)|64|0.1|256|512|5|0.0001|40|1|T|"general"|STEP\*(1/4, 1/2, 3/4)|
+|10|3.0452|64|0.1|256|512|6|0.0001|40|1|F|"general"|STEP\*(1/4, 1/2, 3/4)|
+|11|2.1887(21)|64|0.1|256|512|6|0.0001|40|1|T|"general"|STEP\*(1/4, 1/2, 3/4)|
+|12|2.2009(40))|128|0.1|256|512|4|0.0001|40|2|T|"general"|STEP\*(1/4, 1/2, 3/4)|
+|13|2.3547(34)|128|0.1|256|512|5|0.0001|60|3|T|"paper"|STEP\*(1/4, 1/2, 3/4)|
+|14|2.3505(56)|128|0.1|256|512|4|0.0001|100|5|T|"general"|STEP\*(1/4, 1/2, 3/4)|

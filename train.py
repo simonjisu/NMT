@@ -44,9 +44,9 @@ def train(config):
     EARLY_STOPPING = False
 
     # build networks
-    enc = Encoder(V_so, config.EMBED, config.HIDDEN, config.NUM_HIDDEN, bidrec=True, use_dropout=config.DROPOUT)
+    enc = Encoder(V_so, config.EMBED, config.HIDDEN, config.NUM_HIDDEN, bidrec=True, use_dropout=config.DROPOUT, dropout_rate=config.DROPOUT_RATE)
     dec = Decoder(V_ta, config.EMBED, 2*config.HIDDEN, hidden_size2=config.HIDDEN2, \
-                  sos_idx=SOURCE.vocab.stoi['<s>'], method=config.METHOD, use_dropout=config.DROPOUT)
+                  sos_idx=SOURCE.vocab.stoi['<s>'], method=config.METHOD, use_dropout=config.DROPOUT, dropout_rate=config.DROPOUT_RATE)
     if USE_CUDA:
         enc = enc.cuda()
         dec = dec.cuda()
@@ -54,8 +54,11 @@ def train(config):
     loss_function = nn.CrossEntropyLoss(ignore_index=TARGET.vocab.stoi['<pad>'])
     enc_optimizer = optim.Adam(enc.parameters(), lr=config.LR, weight_decay=config.LAMBDA)
     dec_optimizer = optim.Adam(dec.parameters(), lr=config.LR * config.DECLR, weight_decay=config.LAMBDA)
+
     enc_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[int(config.STEP/4), int(config.STEP/2), int(3*config.STEP/4)], optimizer=enc_optimizer)
     dec_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[int(config.STEP/4), int(config.STEP/2), int(3*config.STEP/4)], optimizer=dec_optimizer)
+    # enc_scheduler = optim.lr_scheduler.LambdaLR(optimizer=enc_optimizer, lr_lambda=lambda x: 0.95**x)
+    # dec_scheduler = optim.lr_scheduler.LambdaLR(optimizer=dec_optimizer, lr_lambda=lambda x: 0.95**x)
 
     # train
     wait = 0
@@ -76,14 +79,14 @@ def train(config):
             dec.zero_grad()
 
             output, hidden = enc(inputs, lengths.tolist())
-            preds, _ = dec(hidden, output, lengths.tolist(), targets.size(1)) # max_len
+            preds, _ = dec(hidden, output, lengths.tolist(), targets.size(1))  # max_len
 
             loss = loss_function(preds, targets.view(-1))
             losses.append(loss.item())
 
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(enc.parameters(), 50.0) # gradient clipping
-            torch.nn.utils.clip_grad_norm_(dec.parameters(), 50.0) # gradient clipping
+            torch.nn.utils.clip_grad_norm_(enc.parameters(), 50.0)  # gradient clipping
+            torch.nn.utils.clip_grad_norm_(dec.parameters(), 50.0)  # gradient clipping
             enc_optimizer.step()
             dec_optimizer.step()
 
@@ -105,6 +108,7 @@ def train(config):
                         break
                     else:
                         wait += 1
+
 
             losses = []
             enc.train()

@@ -1,0 +1,10 @@
+Namespace(BATCH=128, DECLR=5.0, DROPOUT=True, DROPOUT_RATE=0.1, EARLY=True, EARLY_PATIENCE=3, EMBED=256, EVAL_EVERY=5, HIDDEN=512, HIDDEN2=None, LAMBDA=0.0001, LR=0.001, METHOD='general', MIN_DELTA=0.0, NUM_HIDDEN=4, PATH='./data/en_fa/', SAVE_DEC_PATH='./data/model/eng-fra12.dec', SAVE_ENC_PATH='./data/model/eng-fra12.enc', STEP=40, TEST_FILE='eng-fra-small.test', TRAIN_FILE='eng-fra-small.train', VALID_FILE='eng-fra-small.valid')
+cuda states: True
+[1/40] train_loss: 3.2602, valid_loss: 3.2715
+[6/40] train_loss: 1.9594, valid_loss: 2.6219
+[11/40] train_loss: 1.3043, valid_loss: 2.1732
+[16/40] train_loss: 0.9205, valid_loss: 2.1037
+[21/40] train_loss: 0.6765, valid_loss: 2.1432
+[26/40] train_loss: 0.5902, valid_loss: 2.1788
+[31/40] train_loss: 0.5401, valid_loss: 2.1971
+[36/40] train_loss: 0.5328, valid_loss: 2.2009

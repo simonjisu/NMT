@@ -1,0 +1,26 @@
+Namespace(BATCH=64, DECLR=5.0, DROPOUT=True, DROPOUT_RATE=0.1, EARLY=True, EARLY_PATIENCE=5, EMBED=256, EVAL_EVERY=1, HIDDEN=512, HIDDEN2=None, LAMBDA=0.0001, LR=0.001, METHOD='general', MIN_DELTA=0.0, NUM_HIDDEN=4, PATH='./data/en_fa/', SAVE_DEC_PATH='./data/model/eng-fra8.dec', SAVE_ENC_PATH='./data/model/eng-fra8.enc', STEP=40, TEST_FILE='eng-fra-small.test', TRAIN_FILE='eng-fra-small.train', VALID_FILE='eng-fra-small.valid')
+cuda states: True
+[1/40] train_loss: 3.1731, valid_loss: 3.4480
+[2/40] train_loss: 2.5233, valid_loss: 2.9603
+[3/40] train_loss: 2.2906, valid_loss: 2.7863
+[4/40] train_loss: 2.1095, valid_loss: 2.6997
+[5/40] train_loss: 1.9930, valid_loss: 2.5747
+[6/40] train_loss: 1.9083, valid_loss: 2.5456
+[7/40] train_loss: 1.8368, valid_loss: 2.5809
+[8/40] train_loss: 1.8124, valid_loss: 2.5572
+[9/40] train_loss: 1.7536, valid_loss: 2.5033
+[10/40] train_loss: 1.7021, valid_loss: 2.4999
+[11/40] train_loss: 1.2890, valid_loss: 2.1813
+[12/40] train_loss: 1.1305, valid_loss: 2.1676
+[13/40] train_loss: 1.0601, valid_loss: 2.1329
+[14/40] train_loss: 1.0099, valid_loss: 2.1583
+[15/40] train_loss: 0.9701, valid_loss: 2.1513
+[16/40] train_loss: 0.9340, valid_loss: 2.1453
+[17/40] train_loss: 0.9050, valid_loss: 2.1741
+[18/40] train_loss: 0.8763, valid_loss: 2.1767
+[19/40] train_loss: 0.8499, valid_loss: 2.1856
+[20/40] train_loss: 0.8309, valid_loss: 2.1854
+[21/40] train_loss: 0.6808, valid_loss: 2.1896
+[22/40] train_loss: 0.6445, valid_loss: 2.1934
+Early Stopping!
+[3.4480406403541566, 2.960348439216614, 2.7863138914108276, 2.6997219800949095, 2.5747090935707093, 2.5455623269081116, 2.58093923330307, 2.557232081890106, 2.5033284306526182, 2.499860203266144, 2.181330692768097, 2.167641043663025, 2.1328634202480314, 2.158274567127228, 2.151316875219345, 2.1452873587608337, 2.174092149734497, 2.176683211326599, 2.1855769634246824, 2.1853888750076296, 2.189601171016693, 2.1933927118778227]

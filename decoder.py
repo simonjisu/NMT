@@ -1,14 +1,12 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
 from attention import Attention
 USE_CUDA = torch.cuda.is_available()
 DEVICE = torch.cuda.current_device()
 
 class Decoder(nn.Module):
     def __init__(self, V_d, m_d, n_d, sos_idx=2, num_layers=1, hidden_size2=None, 
-                 method='general', return_weight=True, max_len=15, use_dropout=False):
+                 method='general', return_weight=True, max_len=15, use_dropout=False, dropout_rate=0.5):
         super(Decoder, self).__init__()
         """
         vocab_size: V_d
@@ -35,7 +33,7 @@ class Decoder(nn.Module):
         self.embed = nn.Embedding(V_d, m_d)
         # dropout:
         if self.use_dropout:
-            self.dropout = nn.Dropout(0.5)
+            self.dropout = nn.Dropout(dropout_rate)
         # gru(W*[embed, context] + U*[hidden_prev])
         # gru: m+n
         self.gru = nn.GRU(m_d+n_d, n_d, num_layers, batch_first=True, bidirectional=False) 

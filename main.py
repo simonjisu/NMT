@@ -20,13 +20,12 @@ if __name__ == "__main__":
     parser.add_argument('-declr', '--DECLR', help='decoder learning rate', type=float, default=5.0)
     parser.add_argument('-wdk', '--LAMBDA', help='L2 regularization, weight_decay in optimizer', type=float, default=0.0)
     parser.add_argument('-drop', '--DROPOUT', help='using dropout or not', action='store_true', default=False)
+    parser.add_argument('-dropr', '--DROPOUT_RATE', help='using dropout rate', type=float, default=0.5)
     parser.add_argument('-ee', '--EVAL_EVERY', help='eval every step size', type=int, default=1)
     parser.add_argument('-el', '--EARLY', help='using earlystopping', action='store_true', default=False)
     parser.add_argument('-elpat', '--EARLY_PATIENCE', help='earlystopping patience number', type=int, default=5)
     parser.add_argument('-elmin', '--MIN_DELTA', help='earlystopping minimum delta', type=float, default=0.0)
-    
 
-    
     config = parser.parse_args()
     print(config)
     train(config)
