@@ -2,8 +2,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-USE_CUDA = torch.cuda.is_available()
-DEVICE = torch.cuda.current_device()
 
 class Attention(nn.Module):
     def __init__(self, hidden_size, hidden_size2=None, method='general'):

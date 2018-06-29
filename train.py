@@ -3,20 +3,24 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
-from torchtext.data import Field, Iterator, BucketIterator, TabularDataset
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+from torchtext.data import Field, BucketIterator, TabularDataset
+from NMTutils import evaluation
+from torchnlp.metrics import get_moses_multi_bleu
 
 from decoder import Decoder
 from encoder import Encoder
-from attention import Attention
 
 import numpy as np
+
 
 def train(config):
     USE_CUDA = torch.cuda.is_available()
     DEVICE = torch.cuda.current_device()
     print('cuda states: {}'.format(USE_CUDA))
+    if USE_CUDA:
+        torch.cuda.manual_seed(1234)
+    else:
+        torch.manual_seed(1234)
 
     SOURCE = Field(tokenize=str.split, use_vocab=True, init_token="<s>", eos_token="</s>", lower=True, 
                    include_lengths=True, batch_first=True)
@@ -24,8 +28,8 @@ def train(config):
                    batch_first=True)
 
     train_data, valid_data, test_data = \
-        TabularDataset.splits(path=config.PATH, format='tsv', train=config.TRAIN_FILE, \
-                              validation=config.VALID_FILE, test=config.TEST_FILE, \
+        TabularDataset.splits(path=config.PATH, format='tsv', train=config.TRAIN_FILE,
+                              validation=config.VALID_FILE, test=config.TEST_FILE,
                               fields=[('so', SOURCE), ('ta', TARGET)])
 
     SOURCE.build_vocab(train_data)
@@ -35,8 +39,6 @@ def train(config):
                                   sort_key=lambda x: len(x.so), sort_within_batch=True, repeat=False)
     valid_loader = BucketIterator(valid_data, batch_size=config.BATCH, device=DEVICE,
                                   sort_key=lambda x: len(x.so), sort_within_batch=True, repeat=False)
-    test_loader = BucketIterator(test_data, batch_size=config.BATCH, device=DEVICE,
-                                  sort_key=lambda x: len(x.so), sort_within_batch=True, repeat=False)
 
     # parameters
     V_so = len(SOURCE.vocab)
@@ -44,9 +46,9 @@ def train(config):
     EARLY_STOPPING = False
 
     # build networks
-    enc = Encoder(V_so, config.EMBED, config.HIDDEN, config.NUM_HIDDEN, bidrec=True, use_dropout=config.DROPOUT, dropout_rate=config.DROPOUT_RATE)
-    dec = Decoder(V_ta, config.EMBED, 2*config.HIDDEN, hidden_size2=config.HIDDEN2, \
-                  sos_idx=SOURCE.vocab.stoi['<s>'], method=config.METHOD, use_dropout=config.DROPOUT, dropout_rate=config.DROPOUT_RATE)
+    enc = Encoder(V_so, config.EMBED, config.HIDDEN, config.NUM_HIDDEN, bidrec=True, dropout_rate=config.DROPOUT_RATE)
+    dec = Decoder(V_ta, config.EMBED, 2*config.HIDDEN, hidden_size2=config.HIDDEN2,
+                  sos_idx=SOURCE.vocab.stoi['<s>'], method=config.METHOD, dropout_rate=config.DROPOUT_RATE)
     if USE_CUDA:
         enc = enc.cuda()
         dec = dec.cuda()
@@ -55,10 +57,20 @@ def train(config):
     enc_optimizer = optim.Adam(enc.parameters(), lr=config.LR, weight_decay=config.LAMBDA)
     dec_optimizer = optim.Adam(dec.parameters(), lr=config.LR * config.DECLR, weight_decay=config.LAMBDA)
 
-    enc_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[int(config.STEP/4), int(config.STEP/2), int(3*config.STEP/4)], optimizer=enc_optimizer)
-    dec_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[int(config.STEP/4), int(config.STEP/2), int(3*config.STEP/4)], optimizer=dec_optimizer)
-    # enc_scheduler = optim.lr_scheduler.LambdaLR(optimizer=enc_optimizer, lr_lambda=lambda x: 0.95**x)
-    # dec_scheduler = optim.lr_scheduler.LambdaLR(optimizer=dec_optimizer, lr_lambda=lambda x: 0.95**x)
+    if config.LR_SCH:
+        enc_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[10, 20, 30, 40, 50], optimizer=enc_optimizer)
+        dec_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[10, 20, 30, 40, 50], optimizer=dec_optimizer)
+    else:
+        enc_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1,
+                                                       milestones=[int(config.STEP / 4), int(config.STEP / 2),
+                                                                   int(3 * config.STEP / 4)],
+                                                       optimizer=enc_optimizer)
+        dec_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1,
+                                                       milestones=[int(config.STEP / 4), int(config.STEP / 2),
+                                                               int(3 * config.STEP / 4)],
+                                                       optimizer=dec_optimizer)
+
+
 
     # train
     wait = 0
@@ -117,20 +129,4 @@ def train(config):
     # save model
     torch.save(enc.state_dict(), config.SAVE_ENC_PATH)
     torch.save(dec.state_dict(), config.SAVE_DEC_PATH)
-    
-def evaluation(enc, dec, loss_function, loader):
-    enc.eval()
-    dec.eval()
-    valid_losses = []
 
-    for i, batch in enumerate(loader):
-        inputs, lengths = batch.so
-        targets = batch.ta
-
-        output, hidden = enc(inputs, lengths.tolist())
-        preds, _ = dec(hidden, output, lengths.tolist(), targets.size(1)) # max_len
-
-        loss = loss_function(preds, targets.view(-1))
-        valid_losses.append(loss.item())
-            
-    return valid_losses

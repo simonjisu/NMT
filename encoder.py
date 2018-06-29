@@ -1,11 +1,9 @@
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-USE_CUDA = torch.cuda.is_available()
-DEVICE = torch.cuda.current_device()
 
 class Encoder(nn.Module):
-    def __init__(self, V_e, m_e, n_e, num_layers=1, bidrec=False, use_dropout=False, dropout_rate=0.5, layernorm=False):
+    def __init__(self, V_e, m_e, n_e, num_layers=1, bidrec=False, dropout_rate=0.0):
         super(Encoder, self).__init__()
         """
         vocab_size: V_e
@@ -18,14 +16,10 @@ class Encoder(nn.Module):
         self.num_layers = num_layers
         self.bidrec = bidrec
         self.n_direct = 2 if bidrec else 1
-        self.use_dropout = use_dropout
-        self.layernorm = layernorm
+        self.use_dropout = False if dropout_rate == 0.0 else True
 
         if self.use_dropout:
             self.dropout = nn.Dropout(dropout_rate)
-
-        # if self.layernorm:
-        #     self.lm = nn.LayerNorm()
 
         self.embed = nn.Embedding(V_e, m_e) 
         self.gru = nn.GRU(m_e, n_e, num_layers, batch_first=True, bidirectional=bidrec)

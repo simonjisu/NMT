@@ -1,12 +1,10 @@
 import torch
 import torch.nn as nn
 from attention import Attention
-USE_CUDA = torch.cuda.is_available()
-DEVICE = torch.cuda.current_device()
 
 class Decoder(nn.Module):
     def __init__(self, V_d, m_d, n_d, sos_idx=2, num_layers=1, hidden_size2=None, 
-                 method='general', return_weight=True, max_len=15, use_dropout=False, dropout_rate=0.5):
+                 method='general', return_weight=True, max_len=15, dropout_rate=0.0, USE_CUDA=True):
         super(Decoder, self).__init__()
         """
         vocab_size: V_d
@@ -26,7 +24,8 @@ class Decoder(nn.Module):
         self.num_layers = num_layers
         self.return_weight = return_weight
         self.method = method
-        self.use_dropout = use_dropout
+        self.use_dropout = False if dropout_rate == 0.0 else True
+        self.USE_CUDA = USE_CUDA
         # attention
         self.attention = Attention(hidden_size=n_d, hidden_size2=hidden_size2, method=method)
         # embed
@@ -36,7 +35,7 @@ class Decoder(nn.Module):
             self.dropout = nn.Dropout(dropout_rate)
         # gru(W*[embed, context] + U*[hidden_prev])
         # gru: m+n
-        self.gru = nn.GRU(m_d+n_d, n_d, num_layers, batch_first=True, bidirectional=False) 
+        self.gru = nn.GRU(m_d+n_d, n_d, num_layers, batch_first=True, bidirectional=False)
         # linear
         self.linear = nn.Linear(2*n_d, V_d)
         self.max_len = max_len
@@ -44,7 +43,7 @@ class Decoder(nn.Module):
         
     def start_token(self, batch_size):
         sos = torch.LongTensor([self.sos_idx]*batch_size).unsqueeze(1)
-        if USE_CUDA: sos = sos.cuda()
+        if self.USE_CUDA: sos = sos.cuda()
         return sos
     
     def forward(self, hidden, enc_outputs, enc_outputs_lengths=None, max_len=None):

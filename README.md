@@ -1,25 +1,25 @@
-# NMT Study
+# Neural Machine Translation
 
-1. Paper Implementation: [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473) - Dzmitry Bahdanau, Kyunghyun Cho, Yoshua Bengio (v7 2016)
+Paper Implementation: [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473) - Dzmitry Bahdanau, Kyunghyun Cho, Yoshua Bengio (v7 2016)
 
-**References**
+## Getting Started
 
-* arichitecture picture: https://arxiv.org/pdf/1703.03906.pdf
-* tutorial: https://github.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation-batched.ipynb
-* data source: http://www.statmt.org/wmt14/translation-task.html
-* data source2: http://www.manythings.org/anki/
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-**Todo:**
+### Prerequisites
 
-* BLEU score
-* Layer Normalizaiton: https://discuss.pytorch.org/t/speed-up-for-layer-norm-lstm/5861
-* seq2seq beam search: https://guillaumegenthial.github.io/sequence-to-sequence.html
+```
+pytorch 0.4.0
+argparse 1.1
+numpy 1.14.3
+matplotlib 2.2.2
+```
 
-## Demo
+### Demo
 
-## Data Preprocessing
+### Data Preprocessing
 
-After download data from data **source2**, run `preprocessing2.py`
+After download data from data **source2** below `reference`, run `preprocessing2.py`
 
 > `-h` : 'help', 
 >
@@ -41,9 +41,22 @@ After download data from data **source2**, run `preprocessing2.py`
 >
 > `-n` : 'filter n paris of sentences'
 
-## NMT argument parser
+### NMT Training argument parser
 
-For 'HELP' please insert argument behind `main.py -h`
+For 'HELP' please insert argument behind `main.py -h`. For example, 
+
+```
+python3 -u main.py -trp eng-fra-filtered.train \ 
+                   -vap eng-fra-filtered.valid \ 
+                   -tep eng-fra-filtered.test \ 
+                   -svpe ./data/model/eng_fra/eng-fra16.enc \ 
+                   -svpd ./data/model/eng_fra/eng-fra16.dec \ 
+                   -el -elpat 3 -bat 256 -ee 3 -stp 90 \ 
+                   -hid 512 -emd 256 -nhl 4 \ 
+                   -wdk 0.0001 -drop -dropr 0.1
+```
+
+### argument parser
 
 > `-pth` (PATH) : location of path, type=str, default='./data/en_fa/'
 >
@@ -73,15 +86,17 @@ For 'HELP' please insert argument behind `main.py -h`
 >
 > `-lr` (LR) : learning rate, type=float, default=0.001
 >
+> `-lrsch` (LR_SCH) : use fixed learning schedule, default=False
+> 
 > `-declr` (DECLR) : decoder learning rate, type=float, default=5.0
 >
 > `-wdk` (LAMBDA) : L2 regularization, weight_decay in optimizer, type=float, default=0.0
 >
-> `-drop` (DROPOUT) : using dropout or not, action='store_true, default=False
+> `-drop` (DROPOUT) : using dropout or not, default=False
 >
 > `-ee` (EVAL_EVERY) : eval every step size, type=int, default=1
 >
-> `-el` (EARLY) : using earlystopping, action='store_true, default=False
+> `-el` (EARLY) : using earlystopping, default=False
 >
 > `-elpat` (EARLY_PATIENCE) : earlystopping patience number, type=int, default=5
 >
@@ -89,11 +104,13 @@ For 'HELP' please insert argument behind `main.py -h`
 
 ## Trainlog
 
-Train logs are in `trainlog` directory.
+Train logs are in `trainlog` directory. Trained & valid & test for 50000 data sets
 
-Following are hyperparameter to train, `loss` is validation loss, `(el)` beside the `loss` is the early stopped step.
+Following table is hyperparameteres i've tried to train, `loss` is validation loss, `(el)` beside the `loss` is the early stopped step.
 
-|trainID|loss(el)|bat|dropr|emd|hid|nhl|wdk|stp|ee|el|mth|lrdk|
+See [Notebook]() for test sets.
+
+|trainID|loss(el)|bat|dropr|emd|hid|nhl|wdk|stp|ee|el|mth|lrsch|
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 |1|3.6691|64|0.0|300|600|3|0|30|1|F|"general"|STEP\*(1/2)|
 |2|3.1080|64|0.5|300|600|3|0|30|1|F|"general"|STEP\*(1/2)|
@@ -109,3 +126,24 @@ Following are hyperparameter to train, `loss` is validation loss, `(el)` beside 
 |12|2.2009(40))|128|0.1|256|512|4|0.0001|40|2|T|"general"|STEP\*(1/4, 1/2, 3/4)|
 |13|2.3547(34)|128|0.1|256|512|5|0.0001|60|3|T|"paper"|STEP\*(1/4, 1/2, 3/4)|
 |14|2.3505(56)|128|0.1|256|512|4|0.0001|100|5|T|"general"|STEP\*(1/4, 1/2, 3/4)|
+
+## Deployment
+
+### References
+
+* arichitecture picture: https://arxiv.org/pdf/1703.03906.pdf
+* tutorial: https://github.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation-batched.ipynb
+* data source: http://www.statmt.org/wmt14/translation-task.html
+* data source2: http://www.manythings.org/anki/
+
+### Todo:
+
+* BLEU score
+* Layer Normalizaiton: https://discuss.pytorch.org/t/speed-up-for-layer-norm-lstm/5861
+* seq2seq beam search: https://guillaumegenthial.github.io/sequence-to-sequence.html
+
+## License
+
+This project is licensed under the MIT License 
+
+
