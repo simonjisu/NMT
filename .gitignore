@@ -51,4 +51,7 @@ fabric.properties`
 __pycache__
 .ipynb_checkpoints/
 data/*
+nlg-eval/
+
 trainlog/en_kr/*
+

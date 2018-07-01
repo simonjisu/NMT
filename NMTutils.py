@@ -1,6 +1,10 @@
 import argparse
 from torchtext.data import Field, BucketIterator, TabularDataset
 from collections import defaultdict
+from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+
 # About model
 
 def get_parser(lang1, lang2, data_path='./data/en_fa/', file_type='small', **kwargs):
@@ -99,12 +103,63 @@ def evaluation(enc, dec, loss_function, loader):
     return valid_losses
 
 
-def get_source_reference(data, filter_num=1):
-    temp = defaultdict(list)
-    for d in data.examples:
-        src = ' '.join(d.so)
-        tar = ' '.join(d.ta)
-        temp[src].append(tar)
+class BLEU(object):
+    def __init__(self, test_data, filter_num=1, smooth=None):
+        """
+        args:
+        * test data: Field class in torchtext
+        * filter_num: filter counts of target sentences
+        * smooth: smooth method, see https://www.nltk.org/_modules/nltk/translate/bleu_score.html
+        """
+        self.test_data = test_data
+        self.so_ret_dict = defaultdict(list)
+        self.get_source_reference(test_data, filter_num=filter_num)
+        if smooth is not None:
+            assert int(smooth) in list(range(6)), "only can use 6 method in nltk SmoothingFunction class"
+            self.smooth = smooth
+            self.smooth_f = SmoothingFunction()
 
-    temp = {k: v for k, v in temp.items() if len(v) >= filter_num}
-    return temp
+    def get_source_reference(self, data, filter_num=1):
+        for d in data.examples:
+            src = ' '.join(d.so)
+            tar = ' '.join(d.ta)
+            self.so_ret_dict[src].append(tar)
+
+        self.so_ret_dict = {k: v for k, v in self.so_ret_dict.items() if len(v) >= filter_num}
+
+    def evaluation_bleu(self, soruce_sentence, hypotheses, get_ref=False):
+        """
+        hypotheses: a tokenized list
+        """
+        assert isinstance(hypotheses, list), 'hypothesis must be a tokenized list'
+
+        references = self.so_ret_dict[soruce_sentence]
+        score = sentence_bleu([x.split() for x in references], hypotheses,
+                              smoothing_function=self.smooth_f.__getattribute__('method{}'.format(self.smooth)))
+        if get_ref:
+            return score, references
+        return score
+
+
+
+def show_attention(input_words, output_words, attentions):
+    """
+    borrowed code from https://github.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation-batched.ipynb
+    """
+    # Set up figure with colorbar
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    cax = ax.matshow(attentions.numpy(), cmap='bone')
+    fig.colorbar(cax)
+
+    # Set up axes
+    ax.set_xticklabels([''] + input_words, rotation=90)
+    ax.set_yticklabels([''] + output_words)
+
+    # Show label at every tick
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
+    ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
+
+#     show_plot_visdom()
+    plt.show()
+    plt.close()

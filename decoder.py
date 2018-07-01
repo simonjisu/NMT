@@ -3,8 +3,8 @@ import torch.nn as nn
 from attention import Attention
 
 class Decoder(nn.Module):
-    def __init__(self, V_d, m_d, n_d, sos_idx=2, num_layers=1, hidden_size2=None, 
-                 method='general', return_weight=True, max_len=15, dropout_rate=0.0, USE_CUDA=True):
+    def __init__(self, V_d, m_d, n_d, sos_idx=2, num_layers=1, hidden_size2=None, decode_method='greedy',
+                 method='general', ktop=5, return_weight=True, max_len=15, dropout_rate=0.0, USE_CUDA=True):
         super(Decoder, self).__init__()
         """
         vocab_size: V_d
@@ -24,6 +24,8 @@ class Decoder(nn.Module):
         self.num_layers = num_layers
         self.return_weight = return_weight
         self.method = method
+        self.dec_method = decode_method
+        self.ktop = ktop
         self.use_dropout = False if dropout_rate == 0.0 else True
         self.USE_CUDA = USE_CUDA
         # attention
@@ -64,7 +66,7 @@ class Decoder(nn.Module):
         # prepare for whole targer sentence scores
         scores = []
         attn_weights = []
-        
+
         for i in range(max_len):
             # context vector: previous hidden(s{i-1}), encoder_outputs(O_e) > context(c{i}), weights
             # - context: (B, 1, n_d)
@@ -79,7 +81,7 @@ class Decoder(nn.Module):
             # gru((context&embedding), previous hidden)
             # output hidden(s{i}): (1, B, n_d)
             _, hidden = self.gru(gru_input, hidden.transpose(0, 1))
-            hidden = hidden.transpose(0, 1) # change shape to (B, 1, n_d) again
+            hidden = hidden.transpose(0, 1)  # change shape to (B, 1, n_d) again
             
             # concat context and new hidden vectors: (B, 1, 2*n_d)
             concated = torch.cat([hidden, context], 2)
@@ -89,7 +91,7 @@ class Decoder(nn.Module):
             scores.append(score)
             
             # greedy method
-            decoded = score.max(1)[1]  # (B)
+            decoded = self.decode_method(score, dec_method=self.dec_method, ktop=self.ktop)  # (B)
             embeded = self.embed(decoded).unsqueeze(1) # next input y{i-1} (B, 1, m_d)
             if self.use_dropout:
                 embeded = self.dropout(embeded)
@@ -99,7 +101,16 @@ class Decoder(nn.Module):
         # attn_weights = [(B, T_x), (B, T_x), (B, T_x)...] > (B*max_len, T_x)
         scores = torch.cat(scores, 1)
         return scores.view(inputs.size(0)*max_len, -1), torch.cat(attn_weights)
-    
+
+    def decode_method(self, score, dec_method='greedy', ktop=5):
+        prob, decoded = score.max(1)
+        if dec_method == 'greedy':
+            return decoded
+        elif dec_method == 'beam':
+            pass
+
+
+
     def decode(self, hidden, enc_outputs, enc_outputs_lengths, eos_idx=3, max_len=50):
         
         inputs = self.start_token(hidden.size(0))  # (1, 1)

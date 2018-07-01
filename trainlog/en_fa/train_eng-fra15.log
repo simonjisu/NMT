@@ -1,16 +1,14 @@
-Namespace(BATCH=256, DECLR=5.0, DROPOUT=True, DROPOUT_RATE=0.1, EARLY=True, EARLY_PATIENCE=3, EMBED=256, EVAL_EVERY=3, HIDDEN=512, HIDDEN2=None, LAMBDA=0.0001, LR=0.001, METHOD='general', MIN_DELTA=0.0, NUM_HIDDEN=5, PATH='./data/en_fa/', SAVE_DEC_PATH='./data/model/eng_fra/eng-fra15.dec', SAVE_ENC_PATH='./data/model/eng_fra/eng-fra15.enc', STEP=90, TEST_FILE='eng-fra-filtered.test', TRAIN_FILE='eng-fra-filtered.train', VALID_FILE='eng-fra-filtered.valid')
+Namespace(BATCH=256, DECLR=5.0, DROPOUT_RATE=0.1, EARLY=True, EARLY_PATIENCE=2, EMBED=256, EVAL_EVERY=3, HIDDEN=512, HIDDEN2=None, LAMBDA=0.0001, LR=0.001, LR_SCH=True, METHOD='general', MIN_DELTA=0.0, NUM_HIDDEN=4, PATH='./data/en_fa/', SAVE_DEC_PATH='./data/model/eng_fra/eng-fra15.dec', SAVE_ENC_PATH='./data/model/eng_fra/eng-fra15.enc', STEP=90, TEST_FILE='eng-fra-filtered.test', TRAIN_FILE='eng-fra-filtered.train', VALID_FILE='eng-fra-filtered.valid')
 cuda states: True
-[1/90] train_loss: 3.4871, valid_loss: 3.1731
-[4/90] train_loss: 2.2740, valid_loss: 2.7313
-[7/90] train_loss: 2.0535, valid_loss: 2.7251
-[10/90] train_loss: 1.8904, valid_loss: 2.5021
-[13/90] train_loss: 1.7879, valid_loss: 2.3882
-[16/90] train_loss: 1.8164, valid_loss: 2.4907
-[19/90] train_loss: 1.6441, valid_loss: 2.3588
-[22/90] train_loss: 1.6354, valid_loss: 2.3790
-[25/90] train_loss: 1.0859, valid_loss: 2.0486
-[28/90] train_loss: 0.9828, valid_loss: 2.0591
-[31/90] train_loss: 0.9140, valid_loss: 2.0804
-[34/90] train_loss: 0.8608, valid_loss: 2.0963
+[1/90] train_loss: 3.2617, valid_loss: 3.0912
+[4/90] train_loss: 2.2042, valid_loss: 2.7367
+[7/90] train_loss: 1.9986, valid_loss: 2.5275
+[10/90] train_loss: 1.8639, valid_loss: 2.4586
+[13/90] train_loss: 1.2493, valid_loss: 2.0401
+[16/90] train_loss: 1.1256, valid_loss: 2.0508
+[19/90] train_loss: 1.0325, valid_loss: 2.0643
+[22/90] train_loss: 0.8253, valid_loss: 2.0279
+[25/90] train_loss: 0.7867, valid_loss: 2.0406
+[28/90] train_loss: 0.7635, valid_loss: 2.0625
 Early Stopping!
-[3.173053026199341, 2.7312777519226072, 2.7251193284988404, 2.502056288719177, 2.3881675958633424, 2.4906935930252074, 2.3587785243988035, 2.3789823055267334, 2.0485912322998048, 2.0590669751167296, 2.080360162258148, 2.0963089942932127]
+[3.091194438934326, 2.7367081165313722, 2.5275418281555178, 2.4586220026016234, 2.0400815844535827, 2.050789713859558, 2.0643314123153687, 2.0278724193573, 2.04062340259552, 2.062468385696411]

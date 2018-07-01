@@ -8,6 +8,7 @@ if __name__ == "__main__":
     parser.add_argument('-vap', '--VALID_FILE', help='location of valid path', type=str, default='eng-fra-small.valid')
     parser.add_argument('-tep', '--TEST_FILE', help='location of test path', type=str, default='eng-fra-small.test')
     parser.add_argument('-mth', '--METHOD', help='attention methods: dot, general, concat, paper', type=str, default='general')
+    parser.add_argument('-demth', '--DECODE_METHOD', help='decode methods: greedy, beam search', type=str, default='greedy')
     parser.add_argument('-svpe', '--SAVE_ENC_PATH', help='saving encoder model path', type=str, default='./model/eng_fra/eng-fra1.enc')
     parser.add_argument('-svpd', '--SAVE_DEC_PATH', help='saving decoder model path', type=str, default='./model/eng_fra/eng-fra1.dec')
     parser.add_argument('-bat', '--BATCH', help='batch size', type=int, default=64)
@@ -25,6 +26,7 @@ if __name__ == "__main__":
     parser.add_argument('-el', '--EARLY', help='using earlystopping', action='store_true', default=False)
     parser.add_argument('-elpat', '--EARLY_PATIENCE', help='earlystopping patience number', type=int, default=5)
     parser.add_argument('-elmin', '--MIN_DELTA', help='earlystopping minimum delta', type=float, default=0.0)
+
 
     config = parser.parse_args()
     print(config)
