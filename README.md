@@ -4,8 +4,6 @@ Paper Implementation: [Neural Machine Translation by Jointly Learning to Align a
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
-
 ### Prerequisites
 
 ```
@@ -108,7 +106,7 @@ Train logs are in `trainlog` directory. Trained & valid & test for 50000 data se
 
 Following table is hyperparameteres i've tried to train, `loss` is validation loss, `(el)` beside the `loss` is the early stopped step.
 
-See [Notebook]() for test sets.
+See [Notebook](https://nbviewer.jupyter.org/github/simonjisu/NMT/blob/master/NMT_en_fa.ipynb) for test sets.
 
 |trainID|loss(el)|bat|dropr|emd|hid|nhl|wdk|stp|ee|el|mth|lrsch|
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -132,13 +130,12 @@ See [Notebook]() for test sets.
 ### References
 
 * arichitecture picture: https://arxiv.org/pdf/1703.03906.pdf
-* tutorial: https://github.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation-batched.ipynb
+* tutorial: https://githubvi.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation-batched.ipynb
 * data source: http://www.statmt.org/wmt14/translation-task.html
 * data source2: http://www.manythings.org/anki/
 
 ### Todo:
 
-* BLEU score
 * Layer Normalizaiton: https://discuss.pytorch.org/t/speed-up-for-layer-norm-lstm/5861
 * seq2seq beam search: https://guillaumegenthial.github.io/sequence-to-sequence.html
 
