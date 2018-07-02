@@ -102,7 +102,9 @@ python3 -u main.py -trp eng-fra-filtered.train \
 
 ## Trainlog
 
-Train logs are in `trainlog` directory. Trained & valid & test for 50000 data sets
+Train logs are in `trainlog` directory. 
+
+### Train & valid & test for 50000 data sets
 
 Following table is hyperparameteres i've tried to train, `loss` is validation loss, `(el)` beside the `loss` is the early stopped step.
 
@@ -125,19 +127,35 @@ See [Notebook](https://nbviewer.jupyter.org/github/simonjisu/NMT/blob/master/NMT
 |13|2.3547(34)|128|0.1|256|512|5|0.0001|60|3|T|"paper"|STEP\*(1/4, 1/2, 3/4)|
 |14|2.3505(56)|128|0.1|256|512|4|0.0001|100|5|T|"general"|STEP\*(1/4, 1/2, 3/4)|
 
-## Deployment
+### Train & valid & test for 100000 data sets
 
-### References
+|trainID|loss(el)|bat|dropr|emd|hid|nhl|wdk|stp|ee|el|mth|lrsch|
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|15|2.0709(34)|256|0.1|256|512|4|0.0001|90|3|T|"general"|STEP\*(1/4, 1/2, 3/4))|
+|26|2.0323(31)|256|0.1|256|512|4|0.0001|90|3|T|"general"|10, 20, 30, 40, 50|
+
+### Train & valid & test for 100000 data sets with symbolics(' or -)
+
+|trainID|loss(el)|bat|dropr|emd|hid|nhl|wdk|stp|ee|el|mth|lrsch|
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|18|2.1769(25)|128|0.1|256|512|4|0.0001|90|3|T|"general"|10, 20, 30, 40, 50|
+
+## Conclusion
+
+
+## References
 
 * arichitecture picture: https://arxiv.org/pdf/1703.03906.pdf
 * tutorial: https://githubvi.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation-batched.ipynb
 * data source: http://www.statmt.org/wmt14/translation-task.html
 * data source2: http://www.manythings.org/anki/
 
-### Todo:
+## Todo:
 
 * Layer Normalizaiton: https://discuss.pytorch.org/t/speed-up-for-layer-norm-lstm/5861
 * seq2seq beam search: https://guillaumegenthial.github.io/sequence-to-sequence.html
+* large output vocab problem: http://www.aclweb.org/anthology/P15-1001
+
 
 ## License
 

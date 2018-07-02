@@ -109,8 +109,6 @@ class Decoder(nn.Module):
         elif dec_method == 'beam':
             pass
 
-
-
     def decode(self, hidden, enc_outputs, enc_outputs_lengths, eos_idx=3, max_len=50):
         
         inputs = self.start_token(hidden.size(0))  # (1, 1)

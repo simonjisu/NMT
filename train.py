@@ -48,7 +48,8 @@ def train(config):
     # build networks
     enc = Encoder(V_so, config.EMBED, config.HIDDEN, config.NUM_HIDDEN, bidrec=True, dropout_rate=config.DROPOUT_RATE)
     dec = Decoder(V_ta, config.EMBED, 2*config.HIDDEN, hidden_size2=config.HIDDEN2,
-                  sos_idx=SOURCE.vocab.stoi['<s>'], method=config.METHOD, dropout_rate=config.DROPOUT_RATE)
+                  sos_idx=SOURCE.vocab.stoi['<s>'], method=config.METHOD, dropout_rate=config.DROPOUT_RATE,
+                  decode_method=config.DECODE_METHOD)
     if USE_CUDA:
         enc = enc.cuda()
         dec = dec.cuda()
