@@ -146,7 +146,7 @@ See [Notebook](https://nbviewer.jupyter.org/github/simonjisu/NMT/blob/master/NMT
 ## References
 
 * arichitecture picture: https://arxiv.org/pdf/1703.03906.pdf
-* tutorial: https://githubvi.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation-batched.ipynb
+* tutorial: https://github.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation-batched.ipynb
 * data source: http://www.statmt.org/wmt14/translation-task.html
 * data source2: http://www.manythings.org/anki/
 
