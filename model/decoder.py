@@ -1,10 +1,12 @@
 import torch
 import torch.nn as nn
 from attention import Attention
+from layernormGRU import LayerNormGRU
 
 class Decoder(nn.Module):
     def __init__(self, V_d, m_d, n_d, sos_idx=2, num_layers=1, hidden_size2=None, decode_method='greedy',
-                 method='general', ktop=5, return_weight=True, max_len=15, dropout_rate=0.0, USE_CUDA=True):
+                 method='general', ktop=5, return_weight=True, max_len=15, dropout_rate=0.0, USE_CUDA=True,
+                 layernorm=False):
         super(Decoder, self).__init__()
         """
         vocab_size: V_d
@@ -28,6 +30,8 @@ class Decoder(nn.Module):
         self.ktop = ktop
         self.use_dropout = False if dropout_rate == 0.0 else True
         self.USE_CUDA = USE_CUDA
+        self.layernorm = layernorm
+
         # attention
         self.attention = Attention(hidden_size=n_d, hidden_size2=hidden_size2, method=method)
         # embed
@@ -37,7 +41,14 @@ class Decoder(nn.Module):
             self.dropout = nn.Dropout(dropout_rate)
         # gru(W*[embed, context] + U*[hidden_prev])
         # gru: m+n
-        self.gru = nn.GRU(m_d+n_d, n_d, num_layers, batch_first=True, bidirectional=False)
+        if self.layernorm:
+            self.gru = LayerNormGRU(m_d+n_d, n_d, num_layers,
+                                    batch_first=True,
+                                    bidirectional=False,
+                                    layernorm=self.layernorm,
+                                    use_cuda=self.USE_CUDA)
+        else:
+            self.gru = nn.GRU(m_d+n_d, n_d, num_layers, batch_first=True, bidirectional=False)
         # linear
         self.linear = nn.Linear(2*n_d, V_d)
         self.max_len = max_len

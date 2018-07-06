@@ -26,6 +26,8 @@ if __name__ == "__main__":
     parser.add_argument('-el', '--EARLY', help='using earlystopping', action='store_true', default=False)
     parser.add_argument('-elpat', '--EARLY_PATIENCE', help='earlystopping patience number', type=int, default=5)
     parser.add_argument('-elmin', '--MIN_DELTA', help='earlystopping minimum delta', type=float, default=0.0)
+    parser.add_argument('-lnorm', '--LAYERNORM', help='using layer normalization', action='store_true', default=False)
+
 
 
     config = parser.parse_args()

@@ -1,0 +1,14 @@
+Namespace(BATCH=128, DECLR=5.0, DECODE_METHOD='greedy', DROPOUT_RATE=0.1, EARLY=False, EARLY_PATIENCE=5, EMBED=256, EVAL_EVERY=5, HIDDEN=512, HIDDEN2=None, LAMBDA=0.0001, LAYERNORM=True, LR=0.001, LR_SCH=True, METHOD='general', MIN_DELTA=0.0, NUM_HIDDEN=4, PATH='./data/en_fa/', SAVE_DEC_PATH='./data/model/eng_fra/eng-fra19.dec', SAVE_ENC_PATH='./data/model/eng_fra/eng-fra19.enc', STEP=60, TEST_FILE='eng-fra-small.test', TRAIN_FILE='eng-fra-small.train', VALID_FILE='eng-fra-small.valid')
+cuda states: True
+[1/60] train_loss: 8.4022, valid_loss: 8.1741
+[6/60] train_loss: 5.8451, valid_loss: 6.0231
+[11/60] train_loss: 5.6926, valid_loss: 5.9000
+[16/60] train_loss: 5.6949, valid_loss: 6.0294
+[21/60] train_loss: 5.6983, valid_loss: 5.9157
+[26/60] train_loss: 5.7008, valid_loss: 5.8688
+[31/60] train_loss: 5.6332, valid_loss: 5.7792
+[36/60] train_loss: 5.2772, valid_loss: 5.4800
+[41/60] train_loss: 5.1987, valid_loss: 5.4135
+[46/60] train_loss: 5.1832, valid_loss: 5.3766
+[51/60] train_loss: 5.1813, valid_loss: 5.3817
+[56/60] train_loss: 5.1718, valid_loss: 5.3984

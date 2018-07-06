@@ -5,7 +5,6 @@ import torch.nn as nn
 import torch.optim as optim
 from torchtext.data import Field, BucketIterator, TabularDataset
 from NMTutils import evaluation
-from torchnlp.metrics import get_moses_multi_bleu
 
 from decoder import Decoder
 from encoder import Encoder
@@ -46,10 +45,11 @@ def train(config):
     EARLY_STOPPING = False
 
     # build networks
-    enc = Encoder(V_so, config.EMBED, config.HIDDEN, config.NUM_HIDDEN, bidrec=True, dropout_rate=config.DROPOUT_RATE)
+    enc = Encoder(V_so, config.EMBED, config.HIDDEN, config.NUM_HIDDEN, bidrec=True, dropout_rate=config.DROPOUT_RATE,
+                  layernorm=config.LAYERNORM)
     dec = Decoder(V_ta, config.EMBED, 2*config.HIDDEN, hidden_size2=config.HIDDEN2,
                   sos_idx=SOURCE.vocab.stoi['<s>'], method=config.METHOD, dropout_rate=config.DROPOUT_RATE,
-                  decode_method=config.DECODE_METHOD)
+                  decode_method=config.DECODE_METHOD, layernorm=config.LAYERNORM)
     if USE_CUDA:
         enc = enc.cuda()
         dec = dec.cuda()
@@ -59,8 +59,8 @@ def train(config):
     dec_optimizer = optim.Adam(dec.parameters(), lr=config.LR * config.DECLR, weight_decay=config.LAMBDA)
 
     if config.LR_SCH:
-        enc_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[10, 20, 30, 40, 50], optimizer=enc_optimizer)
-        dec_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[10, 20, 30, 40, 50], optimizer=dec_optimizer)
+        enc_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[30, 40, 50], optimizer=enc_optimizer)
+        dec_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[30, 40, 50], optimizer=dec_optimizer)
     else:
         enc_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1,
                                                        milestones=[int(config.STEP / 4), int(config.STEP / 2),

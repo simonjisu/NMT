@@ -70,6 +70,7 @@ class LayerNormGRU(nn.Module):
                                bidirectional=self.bidrectional,
                                layernorm=self.layernorm,
                                return_all_hidden=self.return_all_hidden,
+                               use_cuda=self.use_cuda,
                                is_packed=is_packed)
         if self.batch_first and not is_packed:
             inputs = inputs.transpose(0, 1)  # B, T, D --> T, B, D
@@ -84,18 +85,17 @@ class LayerNormGRU(nn.Module):
         return output, hidden
 
     def init_hidden(self, max_batch_size):
-        hx = torch.zeros(self.num_layers * self.num_directions, max_batch_size, self.hidden_size,
-                            requires_grad=False)
+        hx = torch.zeros(self.num_layers * self.num_directions, max_batch_size, self.hidden_size, requires_grad=False)
         if self.use_cuda:
             hx = hx.cuda()
         return hx
 
+
 class StackedGRU(nn.Module):
 
     def __init__(self, input_size, hidden_size, num_layers, bidirectional=False, layernorm=False,
-                 return_all_hidden=False, is_packed=False):
+                 return_all_hidden=False, is_packed=False, use_cuda=False):
         super(StackedGRU, self).__init__()
-        # to do: add is_packed
         self.layernorm = layernorm
         self.bidirec = bidirectional
         self.return_all_hidden = return_all_hidden
@@ -103,6 +103,7 @@ class StackedGRU(nn.Module):
         self.hidden_size = hidden_size
         self.num_directions = 2 if self.bidirec else 1
         self.num_layers = num_layers
+        self.use_cuda = use_cuda
         self.build_layers(input_size, hidden_size)
         # packed seq
         self.is_packed = is_packed
@@ -115,7 +116,10 @@ class StackedGRU(nn.Module):
     def create_layers(self, input_size, hidden_size):
         layers = nn.ModuleList()
         for _ in range(self.num_layers):
-            layers.append(GRUCell(input_size, hidden_size, layernorm=self.layernorm))
+            cell = GRUCell(input_size, hidden_size, layernorm=self.layernorm)
+            if self.use_cuda:
+                cell = cell.cuda()
+            layers.append(cell)
             input_size = hidden_size
         return layers
 
@@ -218,7 +222,7 @@ class StackedGRU(nn.Module):
 
     def _get_last_idx(self, total_len, batch_sizes, acc_bs):
         """
-        there is difference between
+        there is difference output between packed rnn and not packed rnn:
         https://discuss.pytorch.org/t/lstm-hidden-cell-outputs-and-packed-sequence-for-variable-length-sequence-inputs/1183
 
         """
