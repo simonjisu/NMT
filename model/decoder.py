@@ -1,11 +1,11 @@
 import torch
 import torch.nn as nn
-from attention import Attention
-from layernormGRU import LayerNormGRU
+from model.attention import Attention
+from model.layernormGRU import LayerNormGRU
 
 class Decoder(nn.Module):
     def __init__(self, V_d, m_d, n_d, sos_idx=2, num_layers=1, hidden_size2=None, decode_method='greedy',
-                 method='general', ktop=5, return_weight=True, max_len=15, dropout_rate=0.0, USE_CUDA=True,
+                 method='general', ktop=5, return_weight=True, max_len=15, dropout_rate=0.0, USE_CUDA=False,
                  layernorm=False):
         super(Decoder, self).__init__()
         """

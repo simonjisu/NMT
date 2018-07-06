@@ -3,8 +3,8 @@ import torch
 import torch.nn as nn
 import random
 
-from decoder import Decoder
-from encoder import Encoder
+from model.decoder import Decoder
+from model.encoder import Encoder
 
 from torchtext.data import Field, BucketIterator, TabularDataset
 from collections import defaultdict
@@ -125,11 +125,9 @@ def build_model(model_idx, code, lang1, lang2, file_path='./data/en_fa/', file_t
 
     enc_model_path = './data/model/{0}_{1}/{0}-{1}{2}.enc'.format(lang1, lang2, model_idx)
     dec_model_path = './data/model/{0}_{1}/{0}-{1}{2}.dec'.format(lang1, lang2, model_idx)
-    return config, enc, dec, enc_model_path, dec_model_path
-    # print(enc_model_path, dec_model_path)
-    # enc.load_state_dict(torch.load(enc_model_path))
-    # dec.load_state_dict(torch.load(dec_model_path))
-    # return enc, dec, loss_function, test_loader, test_data
+    enc.load_state_dict(torch.load(enc_model_path))
+    dec.load_state_dict(torch.load(dec_model_path))
+    return enc, dec, loss_function, test_loader, test_data, config
 
 # About metrics
 
@@ -209,7 +207,7 @@ def get_attention_figure(file_type, model_type, lang1='eng', lang2='fra', use_cu
         s = s.cuda()
 
     for i, code in enumerate(model_type, start_model_idx):
-        enc, dec, _, _, _ = build_model(i, code, lang1, lang2, file_path='./data/en_fa/',
+        enc, dec, _, _, _, config = build_model(i, code, lang1, lang2, file_path='./data/en_fa/',
                                         file_type=file_type, use_cuda=use_cuda, device=device)
 
         output, hidden = enc(s, [s.size(1)])
@@ -220,6 +218,10 @@ def get_attention_figure(file_type, model_type, lang1='eng', lang2='fra', use_cu
                                           get_ref=True)
 
         print('======== Model {} ========'.format(i))
+        print('model: hidden {} / embed {} / num_hidden_layer {} / attention_method {}'.format(config.HIDDEN,
+                                                                                               config.EMBED,
+                                                                                               config.NUM_HIDDEN,
+                                                                                               config.METHOD))
         print('Source : ', ' '.join(source_sentence))
         print('Truth : ', ' '.join(target_sentence))
         print('Prediction : ', ' '.join(pred_sentence))

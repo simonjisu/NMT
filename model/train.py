@@ -13,8 +13,13 @@ import numpy as np
 
 
 def train(config):
-    USE_CUDA = torch.cuda.is_available()
-    DEVICE = torch.cuda.current_device()
+    if config.NOCUDA:
+        USE_CUDA = False
+        DEVICE = -1
+    else:
+        USE_CUDA = torch.cuda.is_available()
+        DEVICE = torch.cuda.current_device()
+
     print('cuda states: {}'.format(USE_CUDA))
     if USE_CUDA:
         torch.cuda.manual_seed(1234)
@@ -46,10 +51,10 @@ def train(config):
 
     # build networks
     enc = Encoder(V_so, config.EMBED, config.HIDDEN, config.NUM_HIDDEN, bidrec=True, dropout_rate=config.DROPOUT_RATE,
-                  layernorm=config.LAYERNORM)
+                  layernorm=config.LAYERNORM, USE_CUDA=USE_CUDA)
     dec = Decoder(V_ta, config.EMBED, 2*config.HIDDEN, hidden_size2=config.HIDDEN2,
                   sos_idx=SOURCE.vocab.stoi['<s>'], method=config.METHOD, dropout_rate=config.DROPOUT_RATE,
-                  decode_method=config.DECODE_METHOD, layernorm=config.LAYERNORM)
+                  decode_method=config.DECODE_METHOD, layernorm=config.LAYERNORM, USE_CUDA=USE_CUDA)
     if USE_CUDA:
         enc = enc.cuda()
         dec = dec.cuda()

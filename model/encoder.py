@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-from layernormGRU import LayerNormGRU
+from model.layernormGRU import LayerNormGRU
 
 class Encoder(nn.Module):
-    def __init__(self, V_e, m_e, n_e, num_layers=1, bidrec=False, dropout_rate=0.0, layernorm=False, USE_CUDA=True):
+    def __init__(self, V_e, m_e, n_e, num_layers=1, bidrec=False, dropout_rate=0.0, layernorm=False, USE_CUDA=False):
         super(Encoder, self).__init__()
         """
         vocab_size: V_e

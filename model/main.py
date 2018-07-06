@@ -3,7 +3,7 @@ from train import train
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='NMT argument parser')
-    parser.add_argument('-pth', '--PATH', help='location of path', type=str, default='./data/en_fa/')
+    parser.add_argument('-pth', '--PATH', help='location of path', type=str, default='../data/en_fa/')
     parser.add_argument('-trp', '--TRAIN_FILE', help='location of training path', type=str, default='eng-fra-small.train')
     parser.add_argument('-vap', '--VALID_FILE', help='location of valid path', type=str, default='eng-fra-small.valid')
     parser.add_argument('-tep', '--TEST_FILE', help='location of test path', type=str, default='eng-fra-small.test')
@@ -27,6 +27,7 @@ if __name__ == "__main__":
     parser.add_argument('-elpat', '--EARLY_PATIENCE', help='earlystopping patience number', type=int, default=5)
     parser.add_argument('-elmin', '--MIN_DELTA', help='earlystopping minimum delta', type=float, default=0.0)
     parser.add_argument('-lnorm', '--LAYERNORM', help='using layer normalization', action='store_true', default=False)
+    parser.add_argument('-nocuda', '--NOCUDA', help='use gpu', action='store_true', default=False)
 
 
 

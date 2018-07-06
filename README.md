@@ -15,6 +15,8 @@ matplotlib 2.2.2
 
 ### Demo
 
+Not yet
+
 ### Data Preprocessing
 
 After download data from data **source2** below `reference`, run `preprocessing2.py`
@@ -106,6 +108,8 @@ Train logs are in `trainlog` directory.
 
 ### Train & valid & test for 50000 data sets
 
+> GPU model: 'GeForce GTX 1060 6GB'
+
 Following table is hyperparameteres i've tried to train, `loss` is validation loss, `(el)` beside the `loss` is the early stopped step.
 
 See [Notebook](https://nbviewer.jupyter.org/github/simonjisu/NMT/blob/master/NMT_en_fa.ipynb) for test sets.
@@ -142,6 +146,17 @@ See [Notebook](https://nbviewer.jupyter.org/github/simonjisu/NMT/blob/master/NMT
 
 ## Conclusion
 
+See [Notebook](https://nbviewer.jupyter.org/github/simonjisu/NMT/blob/master/NMT_en_fa.ipynb)
+
+Performance was not good. You can findout sometimes generate well sometimes not.
+
+I think models are not trained enough or not big(deep) enough to capture all sentences feature. In the paper(https://arxiv.org/abs/1409.0473), they used 
+
+* hidden layer size = 1000
+* word embedding dimension = 620
+* attention hidden unit size = 1000
+
+However, because of my GPU only has 6 GB memory, I can't make larger network. Maybe i'll try cpu to do this.
 
 ## References
 
@@ -151,7 +166,6 @@ See [Notebook](https://nbviewer.jupyter.org/github/simonjisu/NMT/blob/master/NMT
 * data source2: http://www.manythings.org/anki/
 
 ## Todo:
-
 * Layer Normalizaiton: https://discuss.pytorch.org/t/speed-up-for-layer-norm-lstm/5861
 * seq2seq beam search: https://guillaumegenthial.github.io/sequence-to-sequence.html
 * large output vocab problem: http://www.aclweb.org/anthology/P15-1001
