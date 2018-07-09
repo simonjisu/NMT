@@ -169,7 +169,7 @@ However, because of my GPU only has 6 GB memory, I can't make larger network. Ma
 * Layer Normalizaiton: https://discuss.pytorch.org/t/speed-up-for-layer-norm-lstm/5861
 * seq2seq beam search: https://guillaumegenthial.github.io/sequence-to-sequence.html
 * large output vocab problem: http://www.aclweb.org/anthology/P15-1001
-
+* Recurrent Memory Networks(using Memory Block): https://arxiv.org/pdf/1601.01272
 
 ## License
 
