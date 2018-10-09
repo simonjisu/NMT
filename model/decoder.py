@@ -1,12 +1,10 @@
 import torch
 import torch.nn as nn
-from model.attention import Attention
-from model.layernormGRU import LayerNormGRU
+from attention import Attention
+from layernormGRU import LayerNormGRU
 
 class Decoder(nn.Module):
-    def __init__(self, V_d, m_d, n_d, sos_idx=2, num_layers=1, hidden_size2=None, decode_method='greedy',
-                 method='general', ktop=5, return_weight=True, max_len=15, dropout_rate=0.0, USE_CUDA=False,
-                 layernorm=False):
+    def __init__(self, V_d, m_d, n_d, sos_idx=2, num_layers=1, hidden_size2=None, method='general', return_weight=True, max_len=15, dropout_rate=0.0, device='cpu', layernorm=False):
         super(Decoder, self).__init__()
         """
         vocab_size: V_d
@@ -26,18 +24,15 @@ class Decoder(nn.Module):
         self.num_layers = num_layers
         self.return_weight = return_weight
         self.method = method
-        self.dec_method = decode_method
-        self.ktop = ktop
-        self.use_dropout = False if dropout_rate == 0.0 else True
-        self.USE_CUDA = USE_CUDA
         self.layernorm = layernorm
-
+        self.dropout_rate = dropout_rate
+        self.device = device
         # attention
         self.attention = Attention(hidden_size=n_d, hidden_size2=hidden_size2, method=method)
         # embed
         self.embed = nn.Embedding(V_d, m_d)
         # dropout:
-        if self.use_dropout:
+        if self.dropout_rate != 0.0:
             self.dropout = nn.Dropout(dropout_rate)
         # gru(W*[embed, context] + U*[hidden_prev])
         # gru: m+n
@@ -46,7 +41,7 @@ class Decoder(nn.Module):
                                     batch_first=True,
                                     bidirectional=False,
                                     layernorm=self.layernorm,
-                                    use_cuda=self.USE_CUDA)
+                                    device=device)
         else:
             self.gru = nn.GRU(m_d+n_d, n_d, num_layers, batch_first=True, bidirectional=False)
         # linear
@@ -55,8 +50,7 @@ class Decoder(nn.Module):
         
         
     def start_token(self, batch_size):
-        sos = torch.LongTensor([self.sos_idx]*batch_size).unsqueeze(1)
-        if self.USE_CUDA: sos = sos.cuda()
+        sos = torch.LongTensor([self.sos_idx]*batch_size).unsqueeze(1).to(self.device)
         return sos
     
     def forward(self, hidden, enc_outputs, enc_outputs_lengths=None, max_len=None):
@@ -71,7 +65,7 @@ class Decoder(nn.Module):
         
         inputs = self.start_token(hidden.size(0)) # (B, 1)
         embeded = self.embed(inputs) # (B, 1, m_d)
-        if self.use_dropout:
+        if self.dropout_rate != 0.0:
             embeded = self.dropout(embeded)
             
         # prepare for whole targer sentence scores
@@ -82,9 +76,14 @@ class Decoder(nn.Module):
             # context vector: previous hidden(s{i-1}), encoder_outputs(O_e) > context(c{i}), weights
             # - context: (B, 1, n_d)
             # - weights: (B, 1, T_x)
-            context, weights = self.attention(hidden, enc_outputs, enc_outputs_lengths, 
-                                              return_weight=self.return_weight)
-            attn_weights.append(weights.squeeze(1))
+            if self.return_weight:
+                context, weights = self.attention(hidden, enc_outputs, enc_outputs_lengths, 
+                                                  return_weight=self.return_weight)
+                attn_weights.append(weights.squeeze(1))
+            else:
+                context = self.attention(hidden, enc_outputs, enc_outputs_lengths, 
+                                         return_weight=self.return_weight)
+            
             
             # concat context & embedding vectors: (B, 1, m_d+n_d)
             gru_input = torch.cat([embeded, context], 2)
@@ -102,53 +101,55 @@ class Decoder(nn.Module):
             scores.append(score)
             
             # greedy method
-            decoded = self.decode_method(score, dec_method=self.dec_method, ktop=self.ktop)  # (B)
+#             decoded = self.decode_method(score, dec_method=self.dec_method, ktop=self.ktop)  # (B)
+            prob, decoded = score.max(1)
             embeded = self.embed(decoded).unsqueeze(1) # next input y{i-1} (B, 1, m_d)
-            if self.use_dropout:
+            if self.dropout_rate != 0:
                 embeded = self.dropout(embeded)
 
         # column-wise concat, reshape!! 
         # scores = [(B, V_d), (B, V_d), (B, V_d)...] > (B, V_d*max_len)
         # attn_weights = [(B, T_x), (B, T_x), (B, T_x)...] > (B*max_len, T_x)
         scores = torch.cat(scores, 1)
-        return scores.view(inputs.size(0)*max_len, -1), torch.cat(attn_weights)
+        if self.return_weight:
+            return scores.view(inputs.size(0)*max_len, -1), torch.cat(attn_weights)
+        return scores.view(inputs.size(0)*max_len, -1)
+    
+#     def decode_method(self, score, dec_method='greedy', ktop=5):
+#         prob, decoded = score.max(1)
+#         if dec_method == 'greedy':
+#             return decoded
+#         elif dec_method == 'beam':
+#             pass
 
-    def decode_method(self, score, dec_method='greedy', ktop=5):
-        prob, decoded = score.max(1)
-        if dec_method == 'greedy':
-            return decoded
-        elif dec_method == 'beam':
-            pass
-
-    def decode(self, hidden, enc_outputs, enc_outputs_lengths, eos_idx=3, max_len=50):
+#     def decode(self, hidden, enc_outputs, enc_outputs_lengths, eos_idx=3, max_len=50):
+#         inputs = self.start_token(hidden.size(0))  # (1, 1)
+#         embeded = self.embed(inputs)  # (1, 1, m_d)
+#         if self.use_dropout:
+#             embeded = self.dropout(embeded)
         
-        inputs = self.start_token(hidden.size(0))  # (1, 1)
-        embeded = self.embed(inputs)  # (1, 1, m_d)
-        if self.use_dropout:
-            embeded = self.dropout(embeded)
+#         decodes = [] 
+#         attn_weights = []
+#         decoded = torch.LongTensor([self.sos_idx]).view(1, -1)
         
-        decodes = [] 
-        attn_weights = []
-        decoded = torch.LongTensor([self.sos_idx]).view(1, -1)
-        
-        while (decoded.item() != eos_idx):
-            # context: (1, 1, n_d)
-            # weights: (1, 1, T_x)
-            context, weights = self.attention(hidden, enc_outputs, enc_outputs_lengths, 
-                                              return_weight=self.return_weight)
-            attn_weights.append(weights.squeeze(1))  # (1, T_x)
-            gru_input = torch.cat([embeded, context], 2)  # (1, 1, m_d+n_d)
-            _, hidden = self.gru(gru_input, hidden.transpose(0, 1))  # (1, 1, n_d)
-            hidden = hidden.transpose(0, 1)
-            concated = torch.cat([hidden, context], 2)  # (1, 1, 2*n_d)
-            score = self.linear(concated.squeeze(1))  # (1, 2*n_d) -> # (1, V_d)
-            decoded = score.max(1)[1]  # (1)
-            decodes.append(decoded)
-            embeded = self.embed(decoded).unsqueeze(1) # (1, 1, m_d)
-            if self.use_dropout:
-                embeded = self.dropout(embeded)
+#         while (decoded.item() != eos_idx):
+#             # context: (1, 1, n_d)
+#             # weights: (1, 1, T_x)
+#             context, weights = self.attention(hidden, enc_outputs, enc_outputs_lengths, 
+#                                               return_weight=self.return_weight)
+#             attn_weights.append(weights.squeeze(1))  # (1, T_x)
+#             gru_input = torch.cat([embeded, context], 2)  # (1, 1, m_d+n_d)
+#             _, hidden = self.gru(gru_input, hidden.transpose(0, 1))  # (1, 1, n_d)
+#             hidden = hidden.transpose(0, 1)
+#             concated = torch.cat([hidden, context], 2)  # (1, 1, 2*n_d)
+#             score = self.linear(concated.squeeze(1))  # (1, 2*n_d) -> # (1, V_d)
+#             decoded = score.max(1)[1]  # (1)
+#             decodes.append(decoded)
+#             embeded = self.embed(decoded).unsqueeze(1) # (1, 1, m_d)
+#             if self.use_dropout:
+#                 embeded = self.dropout(embeded)
             
-            if len(decodes) >= max_len:
-                break
+#             if len(decodes) >= max_len:
+#                 break
         
-        return torch.cat(decodes), torch.cat(attn_weights)
+#         return torch.cat(decodes), torch.cat(attn_weights)

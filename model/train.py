@@ -1,10 +1,12 @@
 # coding utf-8
 # import packages
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import spacy
 from torchtext.data import Field, BucketIterator, TabularDataset
-from NMTutils import evaluation
+import torchtext.datasets as datasets
 
 from decoder import Decoder
 from encoder import Encoder
@@ -12,127 +14,170 @@ from encoder import Encoder
 import numpy as np
 
 
-def train(config):
-    if config.NOCUDA:
-        USE_CUDA = False
-        DEVICE = -1
-    else:
-        USE_CUDA = torch.cuda.is_available()
-        DEVICE = torch.cuda.current_device()
+def import_data(config, device):
+    spacy_de = spacy.load('de')
+    spacy_en = spacy.load('en')
 
-    print('cuda states: {}'.format(USE_CUDA))
-    if USE_CUDA:
-        torch.cuda.manual_seed(1234)
-    else:
-        torch.manual_seed(1234)
+    def tokenize_de(text):
+        return [tok.text for tok in spacy_de.tokenizer(text)]
 
-    SOURCE = Field(tokenize=str.split, use_vocab=True, init_token="<s>", eos_token="</s>", lower=True, 
-                   include_lengths=True, batch_first=True)
-    TARGET = Field(tokenize=str.split, use_vocab=True, init_token="<s>", eos_token="</s>", lower=True, 
-                   batch_first=True)
+    def tokenize_en(text):
+        return [tok.text for tok in spacy_en.tokenizer(text)]
 
-    train_data, valid_data, test_data = \
-        TabularDataset.splits(path=config.PATH, format='tsv', train=config.TRAIN_FILE,
-                              validation=config.VALID_FILE, test=config.TEST_FILE,
-                              fields=[('so', SOURCE), ('ta', TARGET)])
+    SRC = Field(tokenize=tokenize_de, 
+                use_vocab=True, 
+                lower=True, 
+                include_lengths=True, 
+                batch_first=True)
+    TRG = Field(tokenize=tokenize_en, 
+                use_vocab=True, 
+                init_token='<s>', 
+                eos_token='</s>', 
+                lower=True, 
+                batch_first=True)
+    if config.DATATYPE == 'iwslt':
+        train, valid, test = datasets.IWSLT.splits(exts=('.de', '.en'), fields=(SRC, TRG), root=config.ROOTPATH, filter_pred=lambda x: len(vars(x)['src']) <= config.MAX_LEN and len(vars(x)['trg']) <= config.MAX_LEN)
+    elif config.DATATYPE == 'wmt':
+        train, valid, test = datasets.WMT14.splits(exts=('.de', '.en'), fields=(SRC, TRG), root=os.path.join(config.ROOTPATH, 'wmt14'))
 
-    SOURCE.build_vocab(train_data)
-    TARGET.build_vocab(train_data)
+    SRC.build_vocab(train.src, min_freq=config.MIN_FREQ)
+    TRG.build_vocab(train.trg, min_freq=config.MIN_FREQ)
 
-    train_loader = BucketIterator(train_data, batch_size=config.BATCH, device=DEVICE,
-                                  sort_key=lambda x: len(x.so), sort_within_batch=True, repeat=False)
-    valid_loader = BucketIterator(valid_data, batch_size=config.BATCH, device=DEVICE,
-                                  sort_key=lambda x: len(x.so), sort_within_batch=True, repeat=False)
+    train_loader, valid_loader = BucketIterator.splits(datasets=(train, valid), batch_sizes=(config.BATCH, config.BATCH), sort_key=lambda x: len(x.src), sort_within_batch=True, repeat=False, device=device)
+    return SRC, TRG, train, valid, train_loader, valid_loader 
 
-    # parameters
-    V_so = len(SOURCE.vocab)
-    V_ta = len(TARGET.vocab)
-    EARLY_STOPPING = False
 
-    # build networks
-    enc = Encoder(V_so, config.EMBED, config.HIDDEN, config.NUM_HIDDEN, bidrec=True, dropout_rate=config.DROPOUT_RATE,
-                  layernorm=config.LAYERNORM, USE_CUDA=USE_CUDA)
-    dec = Decoder(V_ta, config.EMBED, 2*config.HIDDEN, hidden_size2=config.HIDDEN2,
-                  sos_idx=SOURCE.vocab.stoi['<s>'], method=config.METHOD, dropout_rate=config.DROPOUT_RATE,
-                  decode_method=config.DECODE_METHOD, layernorm=config.LAYERNORM, USE_CUDA=USE_CUDA)
-    if USE_CUDA:
-        enc = enc.cuda()
-        dec = dec.cuda()
-
-    loss_function = nn.CrossEntropyLoss(ignore_index=TARGET.vocab.stoi['<pad>'])
-    enc_optimizer = optim.Adam(enc.parameters(), lr=config.LR, weight_decay=config.LAMBDA)
-    dec_optimizer = optim.Adam(dec.parameters(), lr=config.LR * config.DECLR, weight_decay=config.LAMBDA)
-
-    if config.LR_SCH:
-        enc_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[30, 40, 50], optimizer=enc_optimizer)
-        dec_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1, milestones=[30, 40, 50], optimizer=dec_optimizer)
-    else:
-        enc_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1,
-                                                       milestones=[int(config.STEP / 4), int(config.STEP / 2),
-                                                                   int(3 * config.STEP / 4)],
-                                                       optimizer=enc_optimizer)
-        dec_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1,
-                                                       milestones=[int(config.STEP / 4), int(config.STEP / 2),
+def build_model(config, src_field, trg_field, device):
+    enc = Encoder(V_e=len(src_field.vocab), 
+                  m_e=config.EMBED, 
+                  n_e=config.HIDDEN, 
+                  num_layers=config.NUM_HIDDEN, 
+                  bidrec=True, 
+                  dropout_rate=config.DROPOUT_RATE, 
+                  layernorm=config.LAYERNORM, 
+                  device=device).to(device)
+    dec = Decoder(V_d=len(trg_field.vocab), 
+                  m_d=config.EMBED, 
+                  n_d=2*config.HIDDEN,
+                  num_layers=config.NUM_HIDDEN, 
+                  hidden_size2=config.HIDDEN2,
+                  sos_idx=trg_field.vocab.stoi['<s>'], 
+                  method=config.METHOD, 
+                  dropout_rate=config.DROPOUT_RATE,
+                  layernorm=config.LAYERNORM, 
+                  return_weight=config.RETURN_W, 
+                  device=device).to(device)
+    loss_function = nn.CrossEntropyLoss(ignore_index=trg_field.vocab.stoi['<pad>'])
+    enc_optimizer = optim.Adam(enc.parameters(), 
+                               lr=config.LR, 
+                               weight_decay=config.LAMBDA)
+    dec_optimizer = optim.Adam(dec.parameters(), 
+                               lr=config.LR * config.DECLR, 
+                               weight_decay=config.LAMBDA)
+    enc_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1,
+                                                   milestones=[int(config.STEP / 4), 
+                                                               int(config.STEP / 2),
                                                                int(3 * config.STEP / 4)],
-                                                       optimizer=dec_optimizer)
+                                                   optimizer=enc_optimizer)
+    dec_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1,
+                                                   milestones=[int(config.STEP / 4), 
+                                                               int(config.STEP / 2),
+                                                               int(3 * config.STEP / 4)],
+                                                   optimizer=dec_optimizer)
+    return enc, dec, loss_function, enc_optimizer, dec_optimizer, enc_scheduler, dec_scheduler
 
 
-
-    # train
-    wait = 0
-    valid_loss_list = [1e10] if config.EARLY else None
+def run_step(config, enc, dec, loader, loss_function, enc_optimizer, dec_optimizer):
     enc.train()
     dec.train()
-    for step in range(config.STEP):
-        losses=[]
+    losses = []
+    for i, batch in enumerate(loader):
+        inputs, lengths = batch.src
+        targets = batch.trg
+
+        enc.zero_grad()
+        dec.zero_grad()
+        
+        output, hidden = enc(inputs, lengths.tolist())
+        
+        if dec.return_weight:
+            preds, weights = dec(hidden, output, lengths.tolist(), targets.size(1))  # max_len
+        else:
+            preds = dec(hidden, output, lengths.tolist(), targets.size(1))  # max_len
+        loss = loss_function(preds, targets.view(-1))
+        losses.append(loss.item())
+        loss.backward()
+        
+        torch.nn.utils.clip_grad_norm_(enc.parameters(), 50.0)  # gradient clipping
+        torch.nn.utils.clip_grad_norm_(dec.parameters(), 50.0)  # gradient clipping
+        
+        enc_optimizer.step()
+        dec_optimizer.step()
+        if i % config.PRINT_EVERY == 0:
+            print(' > [{}/{}] train_loss {:.4f}'.format(i, len(loader), loss.item()))
+    return np.mean(losses)
+
+
+def validation(enc, dec, loader, loss_function):
+    enc.eval()
+    dec.eval()
+    losses = []
+    for i, batch in enumerate(loader):
+        inputs, lengths = batch.src
+        targets = batch.trg
+
+        enc.zero_grad()
+        dec.zero_grad()
+
+        output, hidden = enc(inputs, lengths.tolist())
+        preds, _ = dec(hidden, output, lengths.tolist(), targets.size(1))  # max_len
+
+        loss = loss_function(preds, targets.view(-1))
+        losses.append(loss.item())
+        loss.backward()
+    
+    return np.mean(losses)
+
+
+def train_model(config, enc, dec, loss_function, enc_optimizer, dec_optimizer, enc_scheduler, dec_scheduler, train_loader, valid_loader):
+    print('--'*20)
+    valid_losses=[9999]
+    wait = 0
+    for i, step in enumerate(range(config.STEP)):
         enc_scheduler.step()
         dec_scheduler.step()
-        if config.EARLY and EARLY_STOPPING:
-            break
-        for i, batch in enumerate(train_loader):
-            inputs, lengths = batch.so
-            targets = batch.ta
-
-            enc.zero_grad()
-            dec.zero_grad()
-
-            output, hidden = enc(inputs, lengths.tolist())
-            preds, _ = dec(hidden, output, lengths.tolist(), targets.size(1))  # max_len
-
-            loss = loss_function(preds, targets.view(-1))
-            losses.append(loss.item())
-
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(enc.parameters(), 50.0)  # gradient clipping
-            torch.nn.utils.clip_grad_norm_(dec.parameters(), 50.0)  # gradient clipping
-            enc_optimizer.step()
-            dec_optimizer.step()
-
-        if step % config.EVAL_EVERY == 0:
-            valid_losses = evaluation(enc, dec, loss_function, valid_loader)
+        train_loss = run_step(config, enc, dec, train_loader, loss_function, enc_optimizer, dec_optimizer)
+        if config.EMPTY_CUDA_MEMORY:
+            torch.cuda.empty_cache()
+        valid_loss = validation(enc, dec, valid_loader, loss_function)
+        if config.EMPTY_CUDA_MEMORY:
+            torch.cuda.empty_cache()
             
-            msg = '[{}/{}] train_loss: {:.4f}, valid_loss: {:.4f}'.format(\
-              step+1, config.STEP, np.mean(losses), np.mean(valid_losses))
-            print(msg)
-            
-            if config.EARLY:
-                valid_loss_list.append(np.mean(valid_losses))
-                diff = valid_loss_list[-2] - valid_loss_list[-1]
-                if diff < -config.MIN_DELTA:
-                    if wait > config.EARLY_PATIENCE:
-                        EARLY_STOPPING = True
-                        print("Early Stopping!")
-                        print(valid_loss_list[1:])
-                        break
-                    else:
-                        wait += 1
+        valid_losses.append(valid_loss)
 
+        print('[{}/{}] (train) loss {:.4f} | (valid) loss {:.4f} \n'.format(
+                step+1, config.STEP, train_loss, valid_loss))
 
-            losses = []
-            enc.train()
-            dec.train()
+        # Save model
+        if config.SAVE_MODEL:
+            if config.SAVE_BEST:
+                if valid_loss <= min(valid_losses):
+                    torch.save(enc.state_dict(), config.SAVE_ENC_PATH)
+                    torch.save(dec.state_dict(), config.SAVE_DEC_PATH)
 
-    # save model
-    torch.save(enc.state_dict(), config.SAVE_ENC_PATH)
-    torch.save(dec.state_dict(), config.SAVE_DEC_PATH)
+                    print('****** model saved updated! ******')
 
+            else:
+                enc_model_path = config.SAVE_ENC_PATH + \
+                    '{}_{:.4f}_{:.4f}'.format(step, train_loss, valid_loss)
+                dec_model_path = config.SAVE_DEC_PATH + \
+                    '{}_{:.4f}_{:.4f}'.format(step, train_loss, valid_loss)
+                torch.save(enc.state_dict(), enc_model_path)
+                torch.save(dec.state_dict(), dec_model_path)
+                print('****** model saved updated! ******')
+                
+            if valid_loss > min(valid_losses):
+                wait += 1
+                if wait <= config.THRES:
+                    print('****** early break!! ******')
+                    break

@@ -7,7 +7,7 @@ from itertools import accumulate
 
 class LayerNormGRU(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, batch_first=False, layernorm=False,
-                 bidirectional=False, bias=True, use_cuda=False, return_all_hidden=False):
+                 bidirectional=False, bias=True, deivce='cpu', return_all_hidden=False):
         """
         Args:
             : input_size: The number of expected features in the input `x`
@@ -17,7 +17,7 @@ class LayerNormGRU(nn.Module):
             : layernorm: If ``True``, then use torch.nn.Layernorm to normalize linear output in gru
             : bidirectional: If ``True``, becomes a bidirectional RNN. Default: ``False``
             : bias: If ``False``, then the layer does not use bias weights `b_ih` and `b_hh`. Default: ``True``
-            : use_cuda: If ``True``, then use cuda to init hidden state. (didn't figure out how to auto detect it, yet) Default: ``False``
+            : device: If ``cuda``, then use cuda to init hidden state. Default: ``cpu``
             : return_all_hidden: If ``True``, return all hidden layers output. Default: ``False``
 
         [no packed size // packed size]
@@ -37,7 +37,7 @@ class LayerNormGRU(nn.Module):
         self.layernorm = layernorm
         self.batch_first = batch_first
         self.bidrectional = bidirectional
-        self.use_cuda = use_cuda
+        self.deivce = deivce
         self.return_all_hidden = return_all_hidden
         self.num_directions = 2 if self.bidrectional else 1
         self.bias = bias
@@ -70,7 +70,7 @@ class LayerNormGRU(nn.Module):
                                bidirectional=self.bidrectional,
                                layernorm=self.layernorm,
                                return_all_hidden=self.return_all_hidden,
-                               use_cuda=self.use_cuda,
+                               device=self.device,
                                is_packed=is_packed)
         if self.batch_first and not is_packed:
             inputs = inputs.transpose(0, 1)  # B, T, D --> T, B, D
@@ -85,16 +85,15 @@ class LayerNormGRU(nn.Module):
         return output, hidden
 
     def init_hidden(self, max_batch_size):
-        hx = torch.zeros(self.num_layers * self.num_directions, max_batch_size, self.hidden_size, requires_grad=False)
-        if self.use_cuda:
-            hx = hx.cuda()
+        hx = torch.zeros(self.num_layers * self.num_directions, max_batch_size, self.hidden_size, requires_grad=False).to(self.device)
+
         return hx
 
 
 class StackedGRU(nn.Module):
 
     def __init__(self, input_size, hidden_size, num_layers, bidirectional=False, layernorm=False,
-                 return_all_hidden=False, is_packed=False, use_cuda=False):
+                 return_all_hidden=False, is_packed=False, device='cpu'):
         super(StackedGRU, self).__init__()
         self.layernorm = layernorm
         self.bidirec = bidirectional
@@ -103,7 +102,7 @@ class StackedGRU(nn.Module):
         self.hidden_size = hidden_size
         self.num_directions = 2 if self.bidirec else 1
         self.num_layers = num_layers
-        self.use_cuda = use_cuda
+        self.device = device
         self.build_layers(input_size, hidden_size)
         # packed seq
         self.is_packed = is_packed
@@ -116,9 +115,7 @@ class StackedGRU(nn.Module):
     def create_layers(self, input_size, hidden_size):
         layers = nn.ModuleList()
         for _ in range(self.num_layers):
-            cell = GRUCell(input_size, hidden_size, layernorm=self.layernorm)
-            if self.use_cuda:
-                cell = cell.cuda()
+            cell = GRUCell(input_size, hidden_size, layernorm=self.layernorm).to(self.device)
             layers.append(cell)
             input_size = hidden_size
         return layers

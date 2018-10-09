@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-from model.layernormGRU import LayerNormGRU
+from layernormGRU import LayerNormGRU
 
 class Encoder(nn.Module):
-    def __init__(self, V_e, m_e, n_e, num_layers=1, bidrec=False, dropout_rate=0.0, layernorm=False, USE_CUDA=False):
+    def __init__(self, V_e, m_e, n_e, num_layers=1, bidrec=False, dropout_rate=0.0, layernorm=False, device='cpu'):
         super(Encoder, self).__init__()
         """
         vocab_size: V_e
@@ -17,17 +17,14 @@ class Encoder(nn.Module):
         self.num_layers = num_layers
         self.bidrec = bidrec
         self.n_direct = 2 if bidrec else 1
-        self.use_dropout = False if dropout_rate == 0.0 else True
         self.layernorm = layernorm
-        self.USE_CUDA = USE_CUDA
-
-        if self.use_dropout:
+        self.dropout_rate = dropout_rate
+        if dropout_rate != 0.0:
             self.dropout = nn.Dropout(dropout_rate)
 
         self.embed = nn.Embedding(V_e, m_e)
         if self.layernorm:
-            self.gru = LayerNormGRU(m_e, n_e, num_layers, batch_first=True, bidirectional=bidrec, layernorm=self.layernorm,
-                                    use_cuda=self.USE_CUDA)
+            self.gru = LayerNormGRU(m_e, n_e, num_layers, batch_first=True, bidirectional=bidrec, layernorm=self.layernorm, device=device)
         else:
             self.gru = nn.GRU(m_e, n_e, num_layers, batch_first=True, bidirectional=bidrec)
         
@@ -41,7 +38,7 @@ class Encoder(nn.Module):
         """
         # embeded: (B, T_x, n_e)
         embeded = self.embed(inputs)
-        if self.use_dropout:
+        if self.dropout_rate != 0.0:
             embeded = self.dropout(embeded)
             
         # packed: (B*T_x, n_e)

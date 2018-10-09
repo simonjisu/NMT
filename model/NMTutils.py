@@ -3,8 +3,8 @@ import torch
 import torch.nn as nn
 import random
 
-from model.decoder import Decoder
-from model.encoder import Encoder
+from decoder import Decoder
+from encoder import Encoder
 
 from torchtext.data import Field, BucketIterator, TabularDataset
 from collections import defaultdict
@@ -16,9 +16,9 @@ import matplotlib.ticker as ticker
 
 def get_parser(lang1, lang2, data_path='./data/en_fa/', file_type='small', **kwargs):
 
-    config_dict = dict(batch_size={'0': 1, '1': 64, '2': 128, '3': 256},
-                       embed_size={'1': 300, '2': 256},
-                       hidden_size={'1': 600, '2': 512},
+    config_dict = dict(batch_size={'0': 1, '1': 64, '2': 128, '3': 256, '4': 512},
+                       embed_size={'1': 300, '2': 256, '3': 512},
+                       hidden_size={'1': 600, '2': 512, '4': 1024},
                        hidden_layer={'3': 3, '4': 4, '5': 5, '6': 6},
                        drop_rate={'0': 0.0, '1': 0.5, '2': 0.1},
                        method={'1': 'general', '2': 'paper'},
@@ -58,18 +58,16 @@ def get_parser(lang1, lang2, data_path='./data/en_fa/', file_type='small', **kwa
 
 
 def build_data(config, device=-1):
-    SOURCE = Field(tokenize=str.split, use_vocab=True, init_token="<s>", eos_token="</s>", lower=True,
-                   include_lengths=True, batch_first=True)
-    TARGET = Field(tokenize=str.split, use_vocab=True, init_token="<s>", eos_token="</s>", lower=True,
-                   batch_first=True)
+    SOURCE = Field(tokenize=str.split, use_vocab=True, init_token="<s>", eos_token="</s>", lower=True, include_lengths=True, batch_first=True)
+    TARGET = Field(tokenize=str.split, use_vocab=True, init_token="<s>", eos_token="</s>", lower=True, batch_first=True)
 
     train_data, valid_data, test_data = \
         TabularDataset.splits(path=config.PATH, format='tsv', train=config.TRAIN_FILE, \
                               validation=config.VALID_FILE, test=config.TEST_FILE, \
                               fields=[('so', SOURCE), ('ta', TARGET)])
 
-    SOURCE.build_vocab(train_data)
-    TARGET.build_vocab(train_data)
+    SOURCE.build_vocab(train_data.so)
+    TARGET.build_vocab(train_data.ta)
 
     test_loader = BucketIterator(test_data, batch_size=config.BATCH, device=device,
                                  sort_key=lambda x: len(x.so), sort_within_batch=True, repeat=False)
@@ -130,24 +128,6 @@ def build_model(model_idx, code, lang1, lang2, file_path='./data/en_fa/', file_t
     return enc, dec, loss_function, test_loader, test_data, config
 
 # About metrics
-
-def evaluation(enc, dec, loss_function, loader):
-    enc.eval()
-    dec.eval()
-    valid_losses = []
-
-    for i, batch in enumerate(loader):
-        inputs, lengths = batch.so
-        targets = batch.ta
-
-        output, hidden = enc(inputs, lengths.tolist())
-        preds, _ = dec(hidden, output, lengths.tolist(), targets.size(1))  # max_len
-
-        loss = loss_function(preds, targets.view(-1))
-        valid_losses.append(loss.item())
-
-    return valid_losses
-
 
 class BLEU(object):
     def __init__(self, test_data, filter_num=1, smooth=None):
