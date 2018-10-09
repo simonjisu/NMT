@@ -20,4 +20,4 @@ nohup python3 -u main.py \
     -save \
     -savebest \
     -svpe "./saved_models/wmt.enc" \
-    -svpd "./saved_models/wmt.dec" > ../trainlog/nmt.log &
+    -svpd "./saved_models/wmt.dec" > ../trainlog/nmt_wmt.log &
