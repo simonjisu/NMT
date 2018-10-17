@@ -4,53 +4,38 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from layernormGRU import LayerNormGRU
 
 class Encoder(nn.Module):
-    def __init__(self, V_e, m_e, n_e, num_layers=1, bidrec=False, dropout_rate=0.0, layernorm=False, device='cpu'):
+    """Encoder"""
+    def __init__(self, vocab_size, embed_size, hidden_size, n_layers, drop_rate, bidirec=False):
         super(Encoder, self).__init__()
-        """
-        vocab_size: V_e
-        embed_size: m_e
-        hidden_size: n_e
-        """
-        self.V_e = V_e
-        self.m_e = m_e
-        self.n_e = n_e
-        self.num_layers = num_layers
-        self.bidrec = bidrec
-        self.n_direct = 2 if bidrec else 1
-        self.layernorm = layernorm
-        self.dropout_rate = dropout_rate
-        if dropout_rate != 0.0:
-            self.dropout = nn.Dropout(dropout_rate)
-
-        self.embed = nn.Embedding(V_e, m_e)
-        if self.layernorm:
-            self.gru = LayerNormGRU(m_e, n_e, num_layers, batch_first=True, bidirectional=bidrec, layernorm=self.layernorm, device=device)
-        else:
-            self.gru = nn.GRU(m_e, n_e, num_layers, batch_first=True, bidirectional=bidrec)
+        self.hidden_size = hidden_size
+        self.n_layers = n_layers
+        self.n_direction = 2 if bidirec else 1
+        self.embedding = nn.Embedding(vocab_size, embed_size)
+        self.dropout = nn.Dropout(drop_rate)
+        self.gru = nn.GRU(embed_size, hidden_size, n_layers, bidirectional=bidirec, 
+                          batch_first=True)
         
     def forward(self, inputs, lengths):
         """
-        input: 
-        - inputs: B, T_x
-        - lengths: actual max length of batches
-        output:
-        - outputs: B, T_x, n_e
+        Inputs:
+        - inputs: B, T_e
+        - lengths: B, (list)
+        Outputs:
+        - outputs: B, T_e, n_directions*H
+        - hiddens: 1, B, n_directions*H
         """
-        # embeded: (B, T_x, n_e)
-        embeded = self.embed(inputs)
-        if self.dropout_rate != 0.0:
-            embeded = self.dropout(embeded)
-            
-        # packed: (B*T_x, n_e)
-        packed = pack_padded_sequence(embeded, lengths, batch_first=True) 
-        # packed outputs: (B*T_x, 2*n_e)
-        # hidden: (num of layers*n_direct, B, 2*n_e)
-        outputs, hidden = self.gru(packed)
-        # unpacked outputs: (B, T_x, 2*n_e)
-        outputs, output_lengths = pad_packed_sequence(outputs, batch_first=True)
+        assert isinstance(lengths, list), "lengths must be a list type"
+        # B: batch_size, T_e: enc_length, M: embed_size, H: hidden_size
+        inputs = self.embedding(inputs) # (B, T_e) > (B, T_e, m)
+        inputs = self.dropout(inputs)
         
-        # hidden bidirection: (num of layers*n_direct(0,1,2...last one), B, n_e)
-        # choosen last hidden: (B, 1, 2*n_e)
-        hidden = torch.cat([h for h in hidden[-self.n_direct:]], 1).unsqueeze(1)
-        
-        return outputs, hidden
+        packed_inputs = pack_padded_sequence(inputs, lengths, batch_first=True)
+        # packed_inputs: (B*T_e, M) + batches: (T_e)
+        packed_outputs, hiddens = self.gru(packed_inputs)
+        # packed_outputs: (B*T_e, n_directions*H) + batches: (T_e)
+        # hiddens: (n_layers*n_directions, B, H)
+        outputs, outputs_lengths = pad_packed_sequence(packed_outputs, batch_first=True)
+        # output: (B, T_e, H) + lengths (B)
+        hiddens = torch.cat([h for h in hiddens[-self.n_direction:]], 1).unsqueeze(0)
+        # hiddens: (1, B, n_directions*H)
+        return outputs, hiddens

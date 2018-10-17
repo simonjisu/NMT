@@ -1,8 +1,8 @@
 nohup python3 -u main.py \
     -root "../data/" \
     -dt "iwslt" \
-    -minfreq 1 \
-    -stp 10 \
+    -minfreq 2 \
+    -stp 20 \
     -maxlen 50 \
     -bs 16 \
     -pee 1000 \
@@ -10,8 +10,7 @@ nohup python3 -u main.py \
     -emptymem \
     -hid 600 \
     -emd 300 \
-    -enhl 3 \
-    -dnhl 3 \
+    -nhl 3 \
     -mth "general" \
     -drop 0.1 \
     -thres 5 \
@@ -19,5 +18,8 @@ nohup python3 -u main.py \
     -declr 5.0 \
     -save \
     -savebest \
-    -svpe "./saved_models/iswlt.enc" \
-    -svpd "./saved_models/iswlt.dec" > ../trainlog/nmt.log &
+    -svpe "./saved_models/iswlt2.enc" \
+    -svpd "./saved_models/iswlt2.dec" \
+    -load \
+    -ldpe "./saved_models/iswlt.dec" \
+    -ldpd "./saved_models/iswlt.enc" > ../trainlog/nmt2.log &

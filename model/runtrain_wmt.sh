@@ -1,11 +1,10 @@
 nohup python3 -u main.py \
     -root "../data/" \
     -dt "wmt" \
-    -minfreq 2 \
-    -stp 10 \
-    -maxlen 100 \
+    -minfreq 1 \
+    -stp 20 \
     -bs 16 \
-    -pee 300 \
+    -pee 10 \
     -cuda \
     -emptymem \
     -hid 600 \
