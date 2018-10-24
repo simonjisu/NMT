@@ -1,23 +1,26 @@
 nohup python3 -u main.py \
     -root "../data/" \
     -dt "iwslt" \
-    -minfreq 1 \
-    -stp 10 \
-    -maxlen 50 \
+    -minfreq 2 \
+    -stp 30 \
+    -maxlen 30 \
     -bs 16 \
-    -pee 1000 \
+    -pee 5 \
     -cuda \
     -emptymem \
-    -hid 600 \
+    -hid 800 \
     -emd 300 \
     -enhl 3 \
-    -dnhl 3 \
+    -dnhl 1 \
     -mth "general" \
-    -drop 0.1 \
+    -drop 0.2 \
+    -lnorm \
     -thres 5 \
     -lr 0.001 \
     -declr 5.0 \
+    -wdk 0.00001 \
+    -optim "adelta"\
     -save \
     -savebest \
-    -svpe "./saved_models/iswlt.enc" \
-    -svpd "./saved_models/iswlt.dec" > ../trainlog/nmt.log &
+    -svpe "./saved_models/iswlt_big.enc" \
+    -svpd "./saved_models/iswlt_big.dec" > ../trainlog/nmt_big.log &

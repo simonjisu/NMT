@@ -1,19 +1,20 @@
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-from layernormGRU import LayerNormGRU
 
 class Encoder(nn.Module):
     """Encoder"""
-    def __init__(self, vocab_size, embed_size, hidden_size, n_layers, drop_rate, bidirec=False):
-        super(Encoder, self).__init__()
+    def __init__(self, vocab_size, embed_size, hidden_size, n_layers, layernorm=False, bidirec=False):
+        super(Encoder, self).__init__()        
         self.hidden_size = hidden_size
         self.n_layers = n_layers
         self.n_direction = 2 if bidirec else 1
+        self.layernorm = layernorm
         self.embedding = nn.Embedding(vocab_size, embed_size)
-        self.dropout = nn.Dropout(drop_rate)
         self.gru = nn.GRU(embed_size, hidden_size, n_layers, bidirectional=bidirec, 
                           batch_first=True)
+        if layernorm:
+            self.l_norm = nn.LayerNorm(embed_size)
         
     def forward(self, inputs, lengths):
         """
@@ -27,7 +28,8 @@ class Encoder(nn.Module):
         assert isinstance(lengths, list), "lengths must be a list type"
         # B: batch_size, T_e: enc_length, M: embed_size, H: hidden_size
         inputs = self.embedding(inputs) # (B, T_e) > (B, T_e, m)
-        inputs = self.dropout(inputs)
+        if self.layernorm:
+            inputs = self.l_norm(inputs)
         
         packed_inputs = pack_padded_sequence(inputs, lengths, batch_first=True)
         # packed_inputs: (B*T_e, M) + batches: (T_e)

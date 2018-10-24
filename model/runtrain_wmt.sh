@@ -1,17 +1,20 @@
 nohup python3 -u main.py \
     -root "../data/" \
     -dt "wmt" \
-    -minfreq 1 \
+    -minfreq 2 \
+    -maxlen 30 \
     -stp 20 \
-    -bs 16 \
-    -pee 10 \
+    -bs 32 \
+    -pee 5 \
     -cuda \
     -emptymem \
     -hid 600 \
     -emd 300 \
-    -nhl 1 \
+    -enhl 3 \
+    -dnhl 1 \
     -mth "general" \
-    -drop 0.1 \
+    -drop 0.0 \
+    -lnorm \
     -thres 5 \
     -lr 0.001 \
     -declr 5.0 \
