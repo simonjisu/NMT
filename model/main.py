@@ -1,26 +1,7 @@
 import os
 import argparse
 import torch
-from train import import_data, build_model, train_model
-
-def build_config_file(config_path='./settings.py'):
-    with open('./runtrain.sh', 'r') as file:
-        data = file.read().splitlines()
-    log_file = data[-1].split('>')[1].strip()[1:-2]
-    with open(log_file, 'r', encoding='utf-8') as file:
-        data = file.read().splitlines()[0][10:-1]
-        data = [x.strip() for x in data.split(',')]
-        for i, x in enumerate(data):
-            if ('SAVE' in x) & ('_PATH' in x):
-                data[i] = x.split("'.")[0] +"'./model" + x.split("'.")[1]
-            elif 'ROOTPATH' in x:
-                data[i] = "ROOTPATH='./data/'"
-            elif 'RETURN_W' in x:
-                data[i] = "RETURN_W=True"
-        with open(config_path, 'w', encoding='utf-8') as f:
-            for x in data:
-                print(x, file=f)
-
+from train import import_data, build_model, train_model, build_config_file
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='NMT argument parser')
@@ -51,7 +32,6 @@ if __name__ == "__main__":
     parser.add_argument('-declr', '--DECLR', help='decoder learning rate', type=float, default=5.0)
     parser.add_argument('-wdk', '--LAMBDA', help='L2 regularization, weight_decay in optimizer', type=float, default=0.0)
     
-    
     # save model
     parser.add_argument('-novalid', '--NO_VALID', help='no validation', action='store_true')
     parser.add_argument('-save', '--SAVE_MODEL', help='Save model', action='store_true')
@@ -80,4 +60,4 @@ if __name__ == "__main__":
         print("Load complete!")
     
     train_model(config, enc, dec, loss_function, enc_optimizer, dec_optimizer, enc_scheduler, dec_scheduler, train_loader, valid_loader)
-    build_config_file()
+    build_config_file(run_path='./runtrain.sh', config_path='./settings.py')

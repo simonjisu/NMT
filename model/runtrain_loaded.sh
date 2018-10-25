@@ -4,26 +4,27 @@ nohup python3 -u main.py \
     -minfreq 2 \
     -stp 30 \
     -maxlen 30 \
-    -bs 16 \
+    -bs 50 \
     -pee 5 \
     -cuda \
     -emptymem \
-    -hid 800 \
-    -emd 300 \
+    -hid 512 \
+    -emd 256 \
     -enhl 3 \
     -dnhl 1 \
     -mth "general" \
     -drop 0.2 \
     -lnorm \
     -thres 5 \
-    -lr 0.001 \
+    -lr 0.0001 \
+    -tf \
     -declr 5.0 \
     -wdk 0.00001 \
-    -optim "adam"\
+    -optim "adam" \
     -save \
     -savebest \
-    -svpe "./saved_models/iswlt_big_continue.enc" \
-    -svpd "./saved_models/iswlt_big_continue.dec" \
+    -svpe "./saved_models/iswlt_continue.enc" \
+    -svpd "./saved_models/iswlt_continue.dec" \
     -load \
-    -ldpe "./saved_models/iswlt_big.enc" \
-    -ldpd "./saved_models/iswlt_big.dec" > ../trainlog/nmt_big_continue.log &
+    -ldpe "./saved_models/iswlt.enc" \
+    -ldpd "./saved_models/iswlt.dec" > ../trainlog/nmt_continue.log &
