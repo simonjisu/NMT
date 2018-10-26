@@ -1,0 +1,30 @@
+nohup python3 -u main.py \
+    -root "../data/" \
+    -dt "iwslt" \
+    -minfreq 2 \
+    -stp 20 \
+    -maxlen 30 \
+    -bs 50 \
+    -pee 5 \
+    -cuda \
+    -emptymem \
+    -hid 512 \
+    -emd 256 \
+    -enhl 3 \
+    -dnhl 1 \
+    -mth "general" \
+    -drop 0.2 \
+    -lnorm \
+    -thres 5 \
+    -lr 0.0001 \
+    -tf \
+    -declr 2.0 \
+    -wdk 0.0001 \
+    -optim "adelta" \
+    -save \
+    -savebest \
+    -svpe "./saved_models/iswlt_continue2.enc" \
+    -svpd "./saved_models/iswlt_continue2.dec" \
+    -load \
+    -ldpe "./saved_models/iswlt_continue2.enc" \
+    -ldpd "./saved_models/iswlt_continue2.dec" > ../trainlog/nmt_continue2.log &

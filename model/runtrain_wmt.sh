@@ -2,23 +2,25 @@ nohup python3 -u main.py \
     -root "../data/" \
     -dt "wmt" \
     -minfreq 2 \
+    -stp 30 \
     -maxlen 30 \
-    -stp 20 \
-    -bs 32 \
+    -bs 16 \
     -pee 5 \
     -cuda \
     -emptymem \
-    -hid 600 \
-    -emd 300 \
+    -hid 512 \
+    -emd 256 \
     -enhl 3 \
-    -dnhl 1 \
+    -dnhl 3 \
     -mth "general" \
-    -drop 0.0 \
+    -drop 0.2 \
     -lnorm \
     -thres 5 \
     -lr 0.001 \
+    -tf \
     -declr 5.0 \
     -wdk 0.00001 \
+    -optim "adam" \
     -save \
     -savebest \
     -svpe "./saved_models/wmt.enc" \

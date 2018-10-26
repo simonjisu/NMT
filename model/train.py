@@ -106,11 +106,16 @@ def build_model(config, src_field, trg_field, device):
                                    weight_decay=config.LAMBDA)
     elif config.OPTIM == 'adelta':
         enc_optimizer = optim.Adadelta(enc.parameters(),
-                                       lr=config.LR,
                                        weight_decay=config.LAMBDA)
         dec_optimizer = optim.Adadelta(dec.parameters(),
-                                       lr=config.LR * config.DECLR,
                                        weight_decay=config.LAMBDA)
+    elif config.OPTIM == 'sgd':
+        enc_optimizer = optim.SGD(enc.parameters(),
+                                   lr=config.LR,
+                                   weight_decay=config.LAMBDA)
+        dec_optimizer = optim.SGD(dec.parameters(),
+                                   lr=config.LR * config.DECLR,
+                                   weight_decay=config.LAMBDA)
     enc_scheduler = optim.lr_scheduler.MultiStepLR(gamma=0.1,
                                                    milestones=[int(config.STEP / 4),
                                                                int(2 * config.STEP / 3)],

@@ -61,10 +61,10 @@ class Decoder(nn.Module):
         for i in range(1, max_len):
             # contexts[c{i}] = alpha(hiddens[s{i-1}], encoder_output[h])
             # select last hidden: (1, B, H_d) > transpose: (B, 1, H_d) > attention
-            contexts = self.attention(hiddens.transpose(0, 1), enc_output, enc_lengths, 
-                                      return_weight=self.return_w)
-#             contexts = self.attention(hiddens[-1:, :].transpose(0, 1), enc_output, enc_lengths, 
+#             contexts = self.attention(hiddens.transpose(0, 1), enc_output, enc_lengths, 
 #                                       return_weight=self.return_w)
+            contexts = self.attention(hiddens[-1:, :].transpose(0, 1), enc_output, enc_lengths, 
+                                      return_weight=self.return_w)
     
             if self.return_w:
                 attns = contexts[1]  # attns: (B, seq_len=1, T_e) 
@@ -81,8 +81,8 @@ class Decoder(nn.Module):
             # scores = g(s{i}, c{i})
             # select last hidden: (1, B, H_d) > transpose: (B, 1, H_d) > concat: (B, 1, H_d + H_d) >
             # output linear : (B, seq_len=1, vocab_size)
-            score = self.linear(torch.cat((hiddens.transpose(0, 1), contexts), 2))
-#             score = self.linear(torch.cat((hiddens[-1:, :].transpose(0, 1), contexts), 2))
+#             score = self.linear(torch.cat((hiddens.transpose(0, 1), contexts), 2))
+            score = self.linear(torch.cat((hiddens[-1:, :].transpose(0, 1), contexts), 2))
             scores.append(score)
     
             if (self.teacher_force and not is_eval):

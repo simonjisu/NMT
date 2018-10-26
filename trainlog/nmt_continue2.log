@@ -1,0 +1,83 @@
+Namespace(BATCH=50, DATATYPE='iwslt', DECLR=2.0, DEC_N_LAYER=1, DROP_RATE=0.2, EMBED=256, EMPTY_CUDA_MEMORY=True, ENC_N_LAYER=3, HIDDEN=512, LAMBDA=0.0001, LOAD_DEC_PATH='./saved_models/iswlt_continue2.dec', LOAD_ENC_PATH='./saved_models/iswlt_continue2.enc', LOAD_MODEL=True, LR=0.0001, L_NORM=True, MAX_LEN=30, METHOD='general', MIN_FREQ=2, NO_VALID=False, OPTIM='adelta', PRINT_EVERY=5, RETURN_W=False, ROOTPATH='../data/', SAVE_BEST=True, SAVE_DEC_PATH='./saved_models/iswlt_continue2.dec', SAVE_ENC_PATH='./saved_models/iswlt_continue2.enc', SAVE_MODEL=True, STEP=20, TF=True, THRES=5, USE_CUDA=True)
+Source Language: 40781 words, Target Language: 26320 words
+Training Examples: 160477, Validation Examples: 776
+Building Model ...
+Load complete!
+----------------------------------------
+ > [0/3210] train_loss 2.2806
+ > [642/3210] train_loss 1.7632
+ > [1284/3210] train_loss 1.2927
+ > [1926/3210] train_loss 2.1022
+ > [2568/3210] train_loss 1.7338
+[1/20] (train) loss 2.1879 | (valid) loss 5.5841 
+
+****** model saved updated! ******
+ > [0/3210] train_loss 2.4275
+ > [642/3210] train_loss 2.0138
+ > [1284/3210] train_loss 1.9875
+ > [1926/3210] train_loss 2.4128
+ > [2568/3210] train_loss 2.8845
+[2/20] (train) loss 2.2074 | (valid) loss 5.5734 
+
+****** model saved updated! ******
+ > [0/3210] train_loss 2.1115
+ > [642/3210] train_loss 1.4567
+ > [1284/3210] train_loss 1.9635
+ > [1926/3210] train_loss 2.2601
+ > [2568/3210] train_loss 2.4166
+[3/20] (train) loss 2.2271 | (valid) loss 5.5662 
+
+****** model saved updated! ******
+ > [0/3210] train_loss 2.4539
+ > [642/3210] train_loss 2.2223
+ > [1284/3210] train_loss 2.2693
+ > [1926/3210] train_loss 1.6978
+ > [2568/3210] train_loss 2.5224
+[4/20] (train) loss 2.2348 | (valid) loss 5.7602 
+
+ > [0/3210] train_loss 1.8298
+ > [642/3210] train_loss 2.2051
+ > [1284/3210] train_loss 2.7061
+ > [1926/3210] train_loss 1.9751
+ > [2568/3210] train_loss 2.5421
+[5/20] (train) loss 2.2421 | (valid) loss 5.7474 
+
+ > [0/3210] train_loss 2.3548
+ > [642/3210] train_loss 1.9056
+ > [1284/3210] train_loss 2.1152
+ > [1926/3210] train_loss 2.5297
+ > [2568/3210] train_loss 1.3398
+[6/20] (train) loss 1.9401 | (valid) loss 5.4970 
+
+****** model saved updated! ******
+ > [0/3210] train_loss 1.3809
+ > [642/3210] train_loss 1.5871
+ > [1284/3210] train_loss 1.2777
+ > [1926/3210] train_loss 1.5741
+ > [2568/3210] train_loss 1.8109
+[7/20] (train) loss 1.8188 | (valid) loss 5.5362 
+
+ > [0/3210] train_loss 2.0337
+ > [642/3210] train_loss 2.1342
+ > [1284/3210] train_loss 1.6342
+ > [1926/3210] train_loss 1.3332
+ > [2568/3210] train_loss 1.9251
+[8/20] (train) loss 1.7537 | (valid) loss 5.5572 
+
+ > [0/3210] train_loss 2.1736
+ > [642/3210] train_loss 1.8814
+ > [1284/3210] train_loss 0.8564
+ > [1926/3210] train_loss 1.6850
+ > [2568/3210] train_loss 1.3328
+[9/20] (train) loss 1.7026 | (valid) loss 5.6062 
+
+ > [0/3210] train_loss 1.2375
+ > [642/3210] train_loss 1.6412
+ > [1284/3210] train_loss 1.7187
+ > [1926/3210] train_loss 1.7590
+ > [2568/3210] train_loss 1.9897
+[10/20] (train) loss 1.6591 | (valid) loss 5.6196 
+
+****** early break!! ******
+
+Training Excution time with validation: 4 h 26 m 21.9088 s

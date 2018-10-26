@@ -1,7 +1,7 @@
 import os
 import argparse
 import torch
-from train import import_data, build_model, train_model, build_config_file
+from train import import_data, build_model, train_model
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='NMT argument parser')

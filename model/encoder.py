@@ -37,7 +37,7 @@ class Encoder(nn.Module):
         # packed_outputs: (B*T_e, n_directions*H) + batches: (T_e)
         # hiddens: (n_layers*n_directions, B, H)
         outputs, outputs_lengths = pad_packed_sequence(packed_outputs, batch_first=True)
-        # output: (B, T_e, H) + lengths (B)
+        # output: (B, T_e, n_directions*H) + lengths (B)
         hiddens = torch.cat([h for h in hiddens[-self.n_direction:]], 1).unsqueeze(0)
         # hiddens: (1, B, n_directions*H)
         return outputs, hiddens
