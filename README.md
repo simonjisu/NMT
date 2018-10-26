@@ -106,57 +106,6 @@ python3 -u main.py -trp eng-fra-filtered.train \
 
 Train logs are in `trainlog` directory. 
 
-### Train & valid & test for 50000 data sets
-
-> GPU model: 'GeForce GTX 1060 6GB'
-
-Following table is hyperparameteres i've tried to train, `loss` is validation loss, `(el)` beside the `loss` is the early stopped step.
-
-See [Notebook](https://nbviewer.jupyter.org/github/simonjisu/NMT/blob/master/NMT_en_fa.ipynb) for test sets.
-
-|trainID|loss(el)|bat|dropr|emd|hid|nhl|wdk|stp|ee|el|mth|lrsch|
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-|1|3.6691|64|0.0|300|600|3|0|30|1|F|"general"|STEP\*(1/2)|
-|2|3.1080|64|0.5|300|600|3|0|30|1|F|"general"|STEP\*(1/2)|
-|3|2.3471|64|0.0|300|600|3|0.0001|30|1|F|"general"|STEP\*(1/2)|
-|4|2.2082|64|0.5|300|600|3|0.0001|30|1|F|"general"|STEP\*(1/2)|
-|5|2.2157|64|0.5|300|600|3|0.0001|30|1|F|"general"|STEP\*(1/2, 3/4)|
-|6|2.1632|64|0.5|300|600|3|0.0001|50|1|F|"general"|STEP\*(1/2, 3/4)|
-|7|2.0926(24)|64|0.5|300|600|3|0.0001|40|1|T|"general"|STEP\*(1/4, 1/2, 3/4)|
-|8|2.1934(22)|64|0.1|256|512|4|0.0001|40|1|T|"general"|STEP\*(1/4, 1/2, 3/4)|
-|9|2.3073(22)|64|0.1|256|512|5|0.0001|40|1|T|"general"|STEP\*(1/4, 1/2, 3/4)|
-|10|3.0452|64|0.1|256|512|6|0.0001|40|1|F|"general"|STEP\*(1/4, 1/2, 3/4)|
-|11|2.1887(21)|64|0.1|256|512|6|0.0001|40|1|T|"general"|STEP\*(1/4, 1/2, 3/4)|
-|12|2.2009(40))|128|0.1|256|512|4|0.0001|40|2|T|"general"|STEP\*(1/4, 1/2, 3/4)|
-|13|2.3547(34)|128|0.1|256|512|5|0.0001|60|3|T|"paper"|STEP\*(1/4, 1/2, 3/4)|
-|14|2.3505(56)|128|0.1|256|512|4|0.0001|100|5|T|"general"|STEP\*(1/4, 1/2, 3/4)|
-
-### Train & valid & test for 100000 data sets
-
-|trainID|loss(el)|bat|dropr|emd|hid|nhl|wdk|stp|ee|el|mth|lrsch|
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-|15|2.0709(34)|256|0.1|256|512|4|0.0001|90|3|T|"general"|STEP\*(1/4, 1/2, 3/4))|
-|26|2.0323(31)|256|0.1|256|512|4|0.0001|90|3|T|"general"|10, 20, 30, 40, 50|
-
-### Train & valid & test for 100000 data sets with symbolics(' or -)
-
-|trainID|loss(el)|bat|dropr|emd|hid|nhl|wdk|stp|ee|el|mth|lrsch|
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-|18|2.1769(25)|128|0.1|256|512|4|0.0001|90|3|T|"general"|10, 20, 30, 40, 50|
-
-## Conclusion
-
-See [Notebook](https://nbviewer.jupyter.org/github/simonjisu/NMT/blob/master/NMT_en_fa.ipynb)
-
-Performance was not good. You can findout sometimes generate well sometimes not.
-
-I think models are not trained enough or not big(deep) enough to capture all sentences feature. In the paper(https://arxiv.org/abs/1409.0473), they used 
-
-* hidden layer size = 1000
-* word embedding dimension = 620
-* attention hidden unit size = 1000
-
-However, because of my GPU only has 6 GB memory, I can't make larger network. Maybe i'll try cpu to do this.
 
 ## References
 
@@ -170,6 +119,7 @@ However, because of my GPU only has 6 GB memory, I can't make larger network. Ma
 * seq2seq beam search: https://guillaumegenthial.github.io/sequence-to-sequence.html
 * large output vocab problem: http://www.aclweb.org/anthology/P15-1001
 * Recurrent Memory Networks(using Memory Block): https://arxiv.org/pdf/1601.01272
+* BPE: https://arxiv.org/abs/1508.07909 
 
 ## License
 

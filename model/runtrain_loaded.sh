@@ -2,7 +2,7 @@ nohup python3 -u main.py \
     -root "../data/" \
     -dt "iwslt" \
     -minfreq 2 \
-    -stp 30 \
+    -stp 20 \
     -maxlen 30 \
     -bs 50 \
     -pee 5 \
@@ -18,7 +18,7 @@ nohup python3 -u main.py \
     -thres 5 \
     -lr 0.0001 \
     -tf \
-    -declr 5.0 \
+    -declr 3.0 \
     -wdk 0.00001 \
     -optim "adam" \
     -save \

@@ -240,26 +240,3 @@ def train_model(config, enc, dec, loss_function, enc_optimizer, dec_optimizer, e
     minute = int((total_time - hour*60*60) // 60)
     second = total_time - hour*60*60 - minute*60
     print('\nTraining Excution time with validation: {:d} h {:d} m {:.4f} s'.format(hour, minute, second))
-    
-
-def build_config_file(run_path='./runtrain.sh', config_path='./settings.py', notebook=False):
-    with open(run_path, 'r') as file:
-        data = file.read().splitlines()
-    if notebook:
-        log_file = data[-1].split('>')[1].strip()[1:-2]
-    else:
-        log_file = data[-1].split('>')[1].strip()[:-2]
-    with open(log_file, 'r', encoding='utf-8') as file:
-        data = file.read().splitlines()[0][10:-1]
-        data = [x.strip() for x in data.split(',')]
-        for i, x in enumerate(data):
-            if ('SAVE' in x) & ('_PATH' in x):
-                data[i] = x.split("'.")[0] +"'./model" + x.split("'.")[1]
-            elif 'ROOTPATH' in x:
-                data[i] = "ROOTPATH='./data/'"
-            elif 'RETURN_W' in x:
-                data[i] = "RETURN_W=True"
-
-        with open(config_path, 'w', encoding='utf-8') as f:
-            for x in data:
-                print(x, file=f)

@@ -60,4 +60,4 @@ if __name__ == "__main__":
         print("Load complete!")
     
     train_model(config, enc, dec, loss_function, enc_optimizer, dec_optimizer, enc_scheduler, dec_scheduler, train_loader, valid_loader)
-    build_config_file(run_path='./runtrain.sh', config_path='./settings.py')
+    
