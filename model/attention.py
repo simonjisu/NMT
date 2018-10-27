@@ -59,7 +59,7 @@ class Attention(nn.Module):
         - hid(previous_hiddens): B, 1, H_d 
         - out(enc_outputs): B, T_e, H_d
         Outputs:
-        - 
+        - score: B, 1, T_e
         """
         if self.method == 'dot':
             # bmm: (B, 1, H_d) * (B, H, T_e) = (B, 1, T_e)
