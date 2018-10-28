@@ -51,6 +51,12 @@ if __name__ == "__main__":
     if config.USE_CUDA:
         assert config.USE_CUDA == torch.cuda.is_available(), 'cuda is not avaliable.'
     DEVICE = 'cuda' if config.USE_CUDA else None
+    
+    if not os.path.isdir('./saved_models'):
+        os.mkdir('./saved_models')
+    elif not os.path.isdir('../data'):
+        os.mkdir('../data')
+    
     SRC, TRG, train, valid, train_loader, valid_loader = import_data(config, device=DEVICE, is_test=False)
     enc, dec, loss_function, enc_optimizer, dec_optimizer, enc_scheduler, dec_scheduler = \
         build_model(config, src_field=SRC, trg_field=TRG, device=DEVICE)

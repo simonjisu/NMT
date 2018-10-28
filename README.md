@@ -13,109 +13,67 @@ numpy 1.14.3
 matplotlib 2.2.2
 ```
 
-### Demo
+### Tutorial for NMT
 
-Not yet
+* Jupyter notebook: [link](https://nbviewer.jupyter.org/github/simonjisu/NMT/blob/master/Neural_Machine_Translation_Tutorial.ipynb)
+* Preparing for demo
 
-### Data Preprocessing
+### Result
 
-After download data from data **source2** below `reference`, run `preprocessing2.py`
+Trained "IWSLT" 2016 dataset. Check [torchtext.dataset.IWSLT](https://torchtext.readthedocs.io/en/latest/datasets.html#iwslt) to download & loading dataset.
 
-> `-h` : 'help', 
->
-> `-r` : 'reverse',
->
-> `-wf` : 'set filepath, default is "./data/translate"',
->
-> `-rf` : 'set filepath, default is "./data/en_fa/eng-fra.txt"',
->
-> `-train` : 'train sample rate, default is 0.8',
->
-> `-test` : 'test sample rate, default is 0.2',
->
-> `-valid` : 'validation sample rate, default is None',
->
-> `-min_w` : 'filter minimum words of a sentence, default is 3, have to insert if you want to filter',
->
-> `-max_w` : 'filter maximum words of a sentence, default is 25, have to insert if you want to filter',
->
-> `-n` : 'filter n paris of sentences'
+<p align="center">
+  <img width="720" height="480" src="./pics/result.png">
+</p>
 
-### NMT Training argument parser
+### How to Start
 
-For 'HELP' please insert argument behind `main.py -h`. For example, 
+For 'HELP' please insert argument behind `main.py -h`. or you can just run 
 
 ```
-python3 -u main.py -trp eng-fra-filtered.train \ 
-                   -vap eng-fra-filtered.valid \ 
-                   -tep eng-fra-filtered.test \ 
-                   -svpe ./data/model/eng_fra/eng-fra16.enc \ 
-                   -svpd ./data/model/eng_fra/eng-fra16.dec \ 
-                   -el -elpat 3 -bat 256 -ee 3 -stp 90 \ 
-                   -hid 512 -emd 256 -nhl 4 \ 
-                   -wdk 0.0001 -drop -dropr 0.1
+$ cd model
+$ sh runtrain.sh
 ```
-
-### argument parser
-
-> `-pth` (PATH) : location of path, type=str, default='./data/en_fa/'
->
-> `-trp` (TRAIN_FILE) : location of training path, type=str, default='eng-fra-small.train'
->
-> `-vap` (VALID_FILE) : location of valid path, type=str, default='eng-fra-small.valid'
->
-> `-tep` (TEST_FILE) : location of test path, type=str, default='eng-fra-small.test'
->
-> `-mth` (METHOD) : attention methods:  dot, general, concat, paper, type=str, default='general'
->
-> `-svpe` (SAVE_ENC_PATH) : saving encoder model path, type=str, default='./model/fra_eng.enc'
->
-> `-svpd` (SAVE_DEC_PATH) : saving decoder model path, type=str, default='./model/fra_eng.dec'
->
-> `-bat` (BATCH) : batch size, type=int, default=64
->
-> `-hid` (HIDDEN) : hidden size, type=int, default=600
->
-> `-hid2` (HIDDEN2) : hidden size used for attention(not nessesary, type=int, default=None
->
-> `-emd` (EMBED) : embed size, type=int, default=300
->
-> `-stp` (STEP) : number of iteration, type=int, default=30
->
-> `-nhl` (NUM_HIDDEN) : number of hidden layers, type=int, default=3
->
-> `-lr` (LR) : learning rate, type=float, default=0.001
->
-> `-lrsch` (LR_SCH) : use fixed learning schedule, default=False
-> 
-> `-declr` (DECLR) : decoder learning rate, type=float, default=5.0
->
-> `-wdk` (LAMBDA) : L2 regularization, weight_decay in optimizer, type=float, default=0.0
->
-> `-drop` (DROPOUT) : using dropout or not, default=False
->
-> `-ee` (EVAL_EVERY) : eval every step size, type=int, default=1
->
-> `-el` (EARLY) : using earlystopping, default=False
->
-> `-elpat` (EARLY_PATIENCE) : earlystopping patience number, type=int, default=5
->
-> `-elmin` (MIN_DELTA) : earlystopping minimum delta, type=float, default=0.0
 
 ## Trainlog
 
-Train logs are in `trainlog` directory. 
+I devide trains for 3 times, because of computing power.
 
+After 1st training, load model and retrain at 2nd, 3rd time.
 
-## References
+* Lowest losses & check points: 
+* 1st train: [8/30] (train) loss 2.4335 (valid) loss 5.6971
+* 2nd train: [1/30] (train) loss 2.3545 (valid) loss 5.6575
+* 3rd train: [6/20] (train) loss 1.9401 (valid) loss 5.4970
 
-* arichitecture picture: https://arxiv.org/pdf/1703.03906.pdf
-* tutorial: https://github.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation-batched.ipynb
-* data source: http://www.statmt.org/wmt14/translation-task.html
-* data source2: http://www.manythings.org/anki/
+you can see how i choose hyperparameters below
+
+### Hyperparameters
+
+| Hyperparameters |1st Train | 2st Train | 3st Train | Explaination | 
+|--|--|--|--|--|
+| BATCH| 50 | 50 | 50 | batch size | 
+| MAX_LEN | 30 | 30 | 30 | max length of training sentences |
+| MIN_FREQ | 2 | 2 | 2 | minimum frequence of words that appear in training sentences |
+| EMBED | 256 | 256 | 256 | embedding size |
+| HIDDEN | 512 | 512 | 512 | hidden size |
+| ENC_N_LAYER | 3 | 3 | 3 | number of layer in encoder |
+| DEC_N_LAYER | 1 | 1 | 1 | number of layer in decoder |
+| L_NORM | True | True | True | whether to use layer normalization after embedding |
+| DROP_RATE | 0.2 | 0.2 | 0.2 | dropout after embedding, if drop rate equal to 0, means not use it |
+| METHOD | general | general | general | attention methods, "dot", "general" are ready to use |
+| LAMBDA | 0.00001 | 0.00001 | 0.0001 | weight decay rate |
+| LR | 0.001 | 0.0001 | 1.0 | learning rate |
+| DECLR | 5.0 | 5.0 | - | decoder learning weight, multiplied to LR |
+| OPTIM | adam | adam | adelta | optimizer algorithm |
+| STEP | 30 | 20 | 20 | control learning rate at 1/3*step, 3/4*step by multiply 0.1 |
+| TF | True | True | True | teacher forcing, whether to teach what token becomes next to model |
+
+Please check train logs are in `trainlog` directory. 
 
 ## Todo:
-* Layer Normalizaiton: https://discuss.pytorch.org/t/speed-up-for-layer-norm-lstm/5861
+
+* Layer Normalizaiton for GRU: https://discuss.pytorch.org/t/speed-up-for-layer-norm-lstm/5861
 * seq2seq beam search: https://guillaumegenthial.github.io/sequence-to-sequence.html
 * large output vocab problem: http://www.aclweb.org/anthology/P15-1001
 * Recurrent Memory Networks(using Memory Block): https://arxiv.org/pdf/1601.01272
