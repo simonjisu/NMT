@@ -97,19 +97,19 @@ def build_model(config, src_field, trg_field, device):
                   device=device).to(device)
     
     loss_function = nn.CrossEntropyLoss(ignore_index=trg_field.vocab.stoi['<pad>'])
-    if config.OPTIM == 'adam':
+    if config.OPTIM.lower() == 'adam':
         enc_optimizer = optim.Adam(enc.parameters(), 
                                    lr=config.LR, 
                                    weight_decay=config.LAMBDA)
         dec_optimizer = optim.Adam(dec.parameters(), 
                                    lr=config.LR * config.DECLR, 
                                    weight_decay=config.LAMBDA)
-    elif config.OPTIM == 'adelta':
+    elif config.OPTIM.lower() == 'adelta':
         enc_optimizer = optim.Adadelta(enc.parameters(),
                                        weight_decay=config.LAMBDA)
         dec_optimizer = optim.Adadelta(dec.parameters(),
                                        weight_decay=config.LAMBDA)
-    elif config.OPTIM == 'sgd':
+    elif config.OPTIM.lower() == 'sgd':
         enc_optimizer = optim.SGD(enc.parameters(),
                                    lr=config.LR,
                                    weight_decay=config.LAMBDA)
