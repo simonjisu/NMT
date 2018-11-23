@@ -8,28 +8,38 @@ import torch.optim as optim
 import spacy
 from torchtext.data import Field, BucketIterator, TabularDataset
 import torchtext.datasets as datasets
+from konlpy.tag import Mecab
 
 from decoder import Decoder
 from encoder import Encoder
 
 import numpy as np
+# import wandb
 
 def import_data(config, device, is_test=False):
     spacy_de = spacy.load('de')
     spacy_en = spacy.load('en')
+    tagger = Mecab()
 
     def tokenize_de(text):
         return [tok.text for tok in spacy_de.tokenizer(text)]
 
     def tokenize_en(text):
         return [tok.text for tok in spacy_en.tokenizer(text)]
-
-    SRC = Field(tokenize=tokenize_de, 
+    
+    if config.DATATYPE == 'eng-kor':
+        src_tokenizer = tokenize_en
+        trg_tokenizer = tagger.morphs
+    else:
+        src_tokenizer = tokenize_de
+        trg_tokenizer = tokenize_en
+    
+    SRC = Field(tokenize=src_tokenizer, 
                 use_vocab=True, 
                 lower=True, 
                 include_lengths=True, 
                 batch_first=True)
-    TRG = Field(tokenize=tokenize_en, 
+    TRG = Field(tokenize=trg_tokenizer, 
                 use_vocab=True,
                 init_token='<s>',
                 eos_token='</s>', 
@@ -47,6 +57,14 @@ def import_data(config, device, is_test=False):
             fields=(SRC, TRG), 
             root=config.ROOTPATH, 
             filter_pred=lambda x: len(x.src) <= config.MAX_LEN and len(x.trg) <= config.MAX_LEN)
+    elif config.DATATYPE == 'eng-kor':
+        train, valid, test = TabularDataset.splits(
+            path=os.path.join(config.ROOTPATH, 'en_kr'),
+            format='tsv',
+            fields=[('src', SRC), ('trg', TRG)],
+            train='eng-kor.train', 
+            validation='eng-kor.valid', 
+            test='eng-kor.test')
 
     SRC.build_vocab(train.src, min_freq=config.MIN_FREQ)
     TRG.build_vocab(train.trg, min_freq=config.MIN_FREQ)
@@ -154,6 +172,9 @@ def run_step(config, enc, dec, loader, loss_function, enc_optimizer, dec_optimiz
         dec_optimizer.step()
         if i % pee == 0:
             print(' > [{}/{}] train_loss {:.4f}'.format(i, len(loader), loss.item()))
+        # wandb test
+        # wandb.log({"train_loss": np.mean(losses)})
+        # wandb test
     return np.mean(losses)
 
 
@@ -161,27 +182,33 @@ def validation(config, enc, dec, loader, loss_function):
     enc.eval()
     dec.eval()
     losses = []
-    for i, batch in enumerate(loader):
-        inputs, lengths = batch.src
-        targets = batch.trg
+    with torch.no_grad():
+        for i, batch in enumerate(loader):
+            inputs, lengths = batch.src
+            targets = batch.trg
 
-        output, hidden = enc(inputs, lengths.tolist())
-        if dec.return_w:
-            preds, attns = dec(hidden, output, lengths.tolist(), 
-                               targets.size(1), targets, is_eval=config.TF) 
-        else:
-            preds = dec(hidden, output, lengths.tolist(), targets.size(1), targets, is_eval=config.TF)
-        loss = loss_function(preds, targets[:, 1:].contiguous().view(-1))
-        losses.append(loss.item())
-    
+            output, hidden = enc(inputs, lengths.tolist())
+            if dec.return_w:
+                preds, attns = dec(hidden, output, lengths.tolist(), 
+                                   targets.size(1), targets, is_eval=config.TF) 
+            else:
+                preds = dec(hidden, output, lengths.tolist(), targets.size(1), targets, is_eval=config.TF)
+            loss = loss_function(preds, targets[:, 1:].contiguous().view(-1))
+            losses.append(loss.item())
+    # wandb test
+    # wandb.log({"valid_loss": np.mean(losses)})
+    # wandb test
     return np.mean(losses)
 
 
 def train_model(config, enc, dec, loss_function, enc_optimizer, dec_optimizer, enc_scheduler, dec_scheduler, train_loader, valid_loader):
-    print('--'*20)
+    
     valid_losses = [validation(config, enc, dec, valid_loader, loss_function)] if config.LOAD_MODEL else [9999]
     train_losses = [9999]
+    if config.LOAD_MODEL:
+        print(valid_losses[0])
     wait = 0
+    print('--'*20)
     start_time = time.time()
     for i, step in enumerate(range(config.STEP)):
         enc_scheduler.step()

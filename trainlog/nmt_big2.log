@@ -1,0 +1,16 @@
+Namespace(BATCH=20, DATATYPE='iwslt', DECLR=3.0, DEC_N_LAYER=3, DROP_RATE=0.2, EMBED=300, EMPTY_CUDA_MEMORY=True, ENC_N_LAYER=3, HIDDEN=600, LAMBDA=1e-05, LOAD_DEC_PATH='./saved_models/iswlt_big.dec', LOAD_ENC_PATH='./saved_models/iswlt_big.enc', LOAD_MODEL=True, LR=0.0001, L_NORM=True, MAX_LEN=50, METHOD='general', MIN_FREQ=2, NO_VALID=False, OPTIM='sgd', PRINT_EVERY=5, RETURN_W=False, ROOTPATH='../data/', SAVE_BEST=True, SAVE_DEC_PATH='./saved_models/iswlt_big2.dec', SAVE_ENC_PATH='./saved_models/iswlt_big2.enc', SAVE_MODEL=True, STEP=30, TF=True, THRES=5, USE_CUDA=True)
+Source Language: 51823 words, Target Language: 30980 words
+Training Examples: 189416, Validation Examples: 946
+Building Model ...
+Load complete!
+5.933041162788868
+----------------------------------------
+ > [0/9471] train_loss 1.5470
+ > [1894/9471] train_loss 1.6252
+ > [3788/9471] train_loss 2.4774
+ > [5682/9471] train_loss 3.1698
+ > [7576/9471] train_loss 1.7726
+ > [9470/9471] train_loss 3.1459
+[1/30] (train) loss 2.0580 | (valid) loss 5.9581 
+
+ > [0/9471] train_loss 1.3289

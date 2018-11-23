@@ -1,27 +1,27 @@
 nohup python3 -u main.py \
     -root "../data/" \
-    -dt "wmt" \
+    -dt "iwslt" \
     -minfreq 2 \
-    -stp 30 \
-    -maxlen 30 \
+    -stp 20 \
+    -maxlen 50 \
     -bs 16 \
     -pee 5 \
     -cuda \
     -emptymem \
-    -hid 512 \
-    -emd 256 \
+    -hid 600 \
+    -emd 300 \
     -enhl 3 \
     -dnhl 3 \
     -mth "general" \
     -drop 0.2 \
     -lnorm \
     -thres 5 \
-    -lr 0.001 \
+    -lr 0.0001 \
     -tf \
     -declr 5.0 \
     -wdk 0.00001 \
     -optim "adam" \
     -save \
     -savebest \
-    -svpe "./saved_models/wmt.enc" \
-    -svpd "./saved_models/wmt.dec" > ../trainlog/nmt_wmt.log &
+    -svpe "./saved_models/iswlt_big.enc" \
+    -svpd "./saved_models/iswlt_big.dec" > ../trainlog/nmt_big.log &

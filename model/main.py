@@ -1,9 +1,11 @@
 import os
 import argparse
 import torch
+# import wandb
 from train import import_data, build_model, train_model
 
 if __name__ == "__main__":
+    # wandb.init()
     parser = argparse.ArgumentParser(description='NMT argument parser')
     # data
     parser.add_argument('-root', '--ROOTPATH', help='location of path', type=str, default='../data/')
@@ -14,7 +16,6 @@ if __name__ == "__main__":
     parser.add_argument('-emptymem', '--EMPTY_CUDA_MEMORY', help='Use cuda empty cashce', action='store_true')
     parser.add_argument('-minfreq', '--MIN_FREQ', help='Minmum frequence of vocab', type=int, default=2)
     parser.add_argument('-maxlen', '--MAX_LEN', help='Max length of sentences in dataset', type=int, default=50)
-    
     
     # model
     parser.add_argument('-hid', '--HIDDEN', help='hidden size', type=int, default=600)
@@ -47,6 +48,9 @@ if __name__ == "__main__":
     parser.add_argument('-thres', '--THRES', help='earlystopping patience number', type=int, default=5)
 
     config = parser.parse_args()
+    # wandb test
+    # wandb.config.update(config)
+    # wandb test
     print(config)
     if config.USE_CUDA:
         assert config.USE_CUDA == torch.cuda.is_available(), 'cuda is not avaliable.'
@@ -64,6 +68,9 @@ if __name__ == "__main__":
         enc.load_state_dict(torch.load(config.LOAD_ENC_PATH))
         dec.load_state_dict(torch.load(config.LOAD_DEC_PATH))
         print("Load complete!")
-    
+    # wandb test
+    # wandb.hook_torch(enc)
+    # wandb.hook_torch(dec)
+    # wandb test
     train_model(config, enc, dec, loss_function, enc_optimizer, dec_optimizer, enc_scheduler, dec_scheduler, train_loader, valid_loader)
     

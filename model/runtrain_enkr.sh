@@ -1,0 +1,27 @@
+python3 -u main.py \
+    -root "../data/" \
+    -dt "eng-kor" \
+    -minfreq 1 \
+    -stp 30 \
+    -maxlen 50 \
+    -bs 32 \
+    -pee 5 \
+    -cuda \
+    -emptymem \
+    -hid 256 \
+    -emd 128 \
+    -enhl 3 \
+    -dnhl 1 \
+    -mth "general" \
+    -drop 0.1 \
+    -lnorm \
+    -thres 5 \
+    -lr 0.001 \
+    -tf \
+    -declr 5.0 \
+    -wdk 0.00001 \
+    -optim "adam" \
+    -save \
+    -savebest \
+    -svpe "./saved_models/enkr.enc" \
+    -svpd "./saved_models/enkr.dec"

@@ -26,7 +26,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='build config parser')
     parser.add_argument('-r', '--RUN_PATH', help='run path', type=str, default='./runtrain.sh')
     parser.add_argument('-c', '--CONFIG_PATH', help='config path', type=str, default='./settings.py')
-    parser.add_argument('-n', '--NOTEBOOK', help='whether training in notebook', action='store_true')
+    parser.add_argument('-n', '--NOTEBOOK', help='whether try this in notebook', action='store_true')
     config = parser.parse_args()
     build_config_file(run_path=config.RUN_PATH, config_path=config.CONFIG_PATH, notebook=config.NOTEBOOK)
     print('done!')
